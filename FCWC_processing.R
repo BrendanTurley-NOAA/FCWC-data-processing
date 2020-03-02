@@ -5,15 +5,15 @@ library(plotrix)
 library(rgdal)
 
 ### read map data
-setwd("~/Desktop/FCWC_4Joe/shapefile")
+setwd("~/Desktop/FCWC/shapefile")
 world <- readOGR('ne_10m_admin_0_countries.shp')
 
 ### look for cruises
-setwd("~/Desktop/FCWC_4Joe/data")
+setwd("~/Desktop/FCWC/data")
 cruises <- list.files()
 
 cr <- 1 ### which cruise, there is only one in this example
-setwd(paste("~/Desktop/FCWC_4Joe/data/",cruises[cr],sep=''))
+setwd(paste("~/Desktop/FCWC/data/",cruises[cr],sep=''))
 files <- list.files()
 ind <- grep('csv',files)
 
@@ -134,7 +134,7 @@ ox.col2 <- colorRampPalette(c('gray20','gray40','gray90'))
 ox.col3 <- colorRampPalette(c('yellow','gold'))
 
 ### save figure
-setwd("~/Desktop/FCWC_4Joe/figures")
+setwd("~/Desktop/FCWC/figures")
 png(paste("test_",cr,".png",sep=''), width = 7.5, height = 9.5, units = 'in', res = 300)
 
 par(mfrow=c(3,2),mar=c(5,5,2,5))
