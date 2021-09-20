@@ -5,3 +5,6 @@ The original files are exported as a html. I am using Insitu's html to csv parse
 
 The resulting figure output is in development and needs to be beta tested with the end users (i.e., the watermen who are collecting the data).
 
+
+To do
+[ ] update .md using: https://r4ds.had.co.nz/r-markdown-formats.html
