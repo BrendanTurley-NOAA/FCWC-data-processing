@@ -1,3 +1,0 @@
-library(gitcreds)
-gitcreds_get(url = "https://github.com")
-gitcreds_set()
