@@ -1,25 +1,16 @@
 ### This function processes htm files produced by Aquatroll units used by FCWC
 ### coded on a Macbook, so be wary if you try to run on Windows as some of the coding is different
-# The input is the raw htm file
-# The output is a list containing the raw data and a linear interpolation of the data to plot
-# there are several options:
-# 1. input lat/lon if you know it is missing, else the code checks and give you a warning
-# 2. specify the resolution of the linear interpolation of the data out
-# 3. write two processed csv files, the interpolated data and the raw data
-# 4. set the working directory for the output csv files, if na, it reverts to the current working directory
-# 5. the interpolated data will plot out for visual inspection
-### code updated 2021/07/30: fixed error coding characters for spltstr function; added bottom finder function and breaks function
-### code updated 2021/08/02: added new smoothing, depth binning, and interpolation method
-### code updated 2021/08/11: added conversion from depth in feet to meters; reorder columns to be consistent
-### code updated 2021/08/13: created new functions to process either csv or htms
 
+
+###--------- R packages
 require(gsw)
 require(lubridate)
 require(readr)
 require(rvest)
 require(tools)
 
-### R version check
+
+###--------- R version check
 r <- R.version
 if(as.numeric(r$major)<4 & as.numeric(r$minor)<1){
   warning(paste('\n\n Functions created for R version 4.1.0 \n\n 
@@ -28,6 +19,7 @@ if(as.numeric(r$major)<4 & as.numeric(r$minor)<1){
 }
 
 
+###--------- data_extract_aquatroll
 data_extract_aquatroll <- function(input){
   ### fields required for exporting raw data
   flds_req <- c("Date Time",
@@ -126,6 +118,15 @@ data_extract_aquatroll <- function(input){
 }
 
 
+###--------- process_aquatroll
+# The input is the raw htm file
+# The output is a list containing the raw data and a linear interpolation of the data to plot
+# there are several options:
+# 1. input lat/lon if you know it is missing, else the code checks and give you a warning
+# 2. specify the resolution of the linear interpolation of the data out
+# 3. write two processed csv files, the interpolated data and the raw data
+# 4. set the working directory for the output csv files, if na, it reverts to the current working directory
+# 5. the interpolated data will plot out for visual inspection
 process_aquatroll <- function(input, lat=NA, lon=NA, resolution=1, z_min=2, span=5, write_csv=T, set_wd=NA, plot=T){
   if(file_ext(input)!='csv' & file_ext(input)!='htm'){
     warning(paste('\n\n File format needs to be csv or htm! \n\n'),
@@ -367,6 +368,7 @@ process_aquatroll <- function(input, lat=NA, lon=NA, resolution=1, z_min=2, span
 }
 
 
+###--------- summary_aquatroll
 summary_aquatroll <- function(input,  ignore.marked=T){
   if(file_ext(input)!='csv' & file_ext(input)!='htm'){
     warning(paste('\n\n File format needs to be csv or htm! \n\n'),
@@ -475,6 +477,7 @@ summary_aquatroll <- function(input,  ignore.marked=T){
 }
 
 
+###--------- bottom_finder
 ### finds the max depth per station for plotting bottom on section plots
 ### better method would be to find bathymetry from gridded bathymetry like ETOPO1 or CRM
 bottom_finder <- function(longitudes,depths){
