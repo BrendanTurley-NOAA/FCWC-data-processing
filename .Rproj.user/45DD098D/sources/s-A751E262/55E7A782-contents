@@ -1,0 +1,2 @@
+2021-09-20  Brendan Turley
+- aquatroll_processing.R: removal of depreciated and redundant functions dropout_aquatroll, process_htm, summary_aquatroll, summary_htm

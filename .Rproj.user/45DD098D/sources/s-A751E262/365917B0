@@ -1,0 +1,27 @@
+{
+    "id": "365917B0",
+    "path": "~/Documents/R/Github/FCWC-data-processing/R code/aquatroll_processing.R",
+    "project_path": "R code/aquatroll_processing.R",
+    "type": "r_source",
+    "hash": "803687554",
+    "contents": "",
+    "dirty": false,
+    "created": 1631331658681.0,
+    "source_on_save": false,
+    "relative_order": 2,
+    "properties": {
+        "tempName": "Untitled1",
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "471,50",
+        "scrollLine": "0"
+    },
+    "folds": "30|42|125|0|\n128|116|366|0|\n369|55|474|0|\n",
+    "lastKnownWriteTime": 1632170455,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1632258720729,
+    "read_only": false,
+    "read_only_alternatives": []
+}
