@@ -7,4 +7,4 @@ The original files are exported as a html. I am using Insitu's html to csv parse
 ---
 
 To do
-* update .md using: https://r4ds.had.co.nz/r-markdown-formats.html
+* update .md using: https://r4ds.had.co.nz/r-markdown-formats.html or https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet
