@@ -1,5 +1,11 @@
 ### This function processes htm files produced by Aquatroll units used by FCWC
 ### coded on a Macbook, so be wary if you try to run on Windows as some of the coding is different
+# sessionInfo()
+# R version 4.1.0 (2021-05-18)
+# Platform: x86_64-apple-darwin17.0 (64-bit)
+# Running under: macOS Big Sur 11.2.3
+# Sys.time()
+# "2021-09-22 10:02:54 CDT"
 
 
 ###--------- R packages
