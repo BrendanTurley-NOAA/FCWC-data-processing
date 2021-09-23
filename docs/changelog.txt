@@ -1,3 +1,6 @@
+2021-09-22  Brendan Turley
+- aquatroll_processing.R: added new interpolation function interp_aquatroll to replace old function process_aquatroll
+
 2021-09-20  Brendan Turley
 - aquatroll_processing.R: removal of depreciated and redundant functions dropout_aquatroll, process_htm, summary_aquatroll, summary_htm
 
