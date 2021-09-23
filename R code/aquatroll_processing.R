@@ -136,19 +136,21 @@ data_extract_aquatroll <- function(input # htm or csv file that contains the raw
 interp_aquatroll <- function (input, # input file is the output data.frame from data_extract_aquatroll function
                               parms = c('temperature','salinity','chlorophyll','oxygen'), # parameters that you want to extract, smooth, and interpolate
                               z_min = 2, # depth cutoff to start interpolation, typically there is a soak period at the surface where readings are unreliable
-                              resolution = 1 # resolution in meters of the interpolation
-                              )
-  {
+                              resolution = 1, # resolution in meters of the interpolation
+                              set_wd=NA, # set the working directory to save csv and plots; if NA, it reverts to the current working directory
+                              plot=T # TRUE to plot interpolated data for visual inspection
+)
+{
   ### rename oxygen
   if(length(which(parms=='oxygen'))>0){
     parms[which(parms=='oxygen')] <- 'rdo'
   }
+  
   ### test for valid parameters
   test <- sapply(parms,function(x) grep(x,names(input),ignore.case = T)) %>%
     sapply(length)
   if(any(test<1)){
     names(test)[which(test<1)]
-    # print(paste(input,input,sep='/'))
     warning(paste('\n\n Invalid parameter: \n\n',
                   names(test)[which(test<1)],
                   '\n\n'),
@@ -197,15 +199,26 @@ interp_aquatroll <- function (input, # input file is the output data.frame from 
   ### keep only variables of interest
   input <- as.data.frame(input[,ind_all])
   columns <- names(input)
+  
   # average lon & lat, before filtering
   lon_avg <- mean(input[,grep('Longitude',columns)], na.rm = T)
   lat_avg <- mean(input[,grep('Latitude',columns)], na.rm = T)
+  
   # order by time
   input[,grep('Date',columns)]<- ymd_hms(input[,grep('Date',columns)])
   input <- input[order(input[,grep('Date',columns)]),]
+  dtime <- input[1,grep('Date',columns)]
+  timestamp <- paste(year(dtime),
+                     sprintf("%02d", month(dtime)),
+                     sprintf("%02d", day(dtime)),
+                     sprintf("%02d", hour(dtime)),
+                     sprintf("%02d", minute(dtime)),
+                     sep='')
+  
   # filter for downcast (not up)
   row_end <- which.max(input$Depth)
   input <- input[1:row_end,]
+  
   # filter out surface entries (< 2 m), except row immediately before
   ind_lt2m <- which(input$Depth < z_min)
   if (length(ind_lt2m) > 0){
@@ -220,17 +233,27 @@ interp_aquatroll <- function (input, # input file is the output data.frame from 
   breaks <- seq(0,ceiling(max(input$Depth)),resolution)
   z_cuts <- cut(input$Depth,breaks=breaks+.5)
   levels(z_cuts) <- breaks[2:length(breaks)]
-  
+  ### for plotting
+  if(plot){
+    if(is.na(set_wd)){
+      setwd(paste(getwd()))
+    } else {
+      setwd(paste(set_wd))
+    }
+    png(paste(timestamp,'plots.png',sep='_'), height = 10, width = 7, units = 'in', res=300)
+  }
   cols <- c(2,'purple',3,4)
+  par(mfrow=c(2,2))
+  
+  ### empty data.frame to store output
   temp_out <- data.frame(matrix(NA,length(breaks),length(parms)+3))
   temp_out[,1] <- input[1,1]
   temp_out[,2] <- input[1,2]
   temp_out[,3] <- breaks
-  par(mfrow=c(2,2))
   for(i in 1:length(parms)){
     ind <- grep(parms[i],names(input),ignore.case = T)
-    temp_rm <- smooth.spline(input$Depth,input[,ind],df=nrow(input)/3)
-    # temp_rm <- smooth.spline(input$Depth,input[,ind],spar=.6)
+    # temp_rm <- smooth.spline(input$Depth,input[,ind],df=nrow(input)/3)
+    temp_rm <- smooth.spline(input$Depth,input[,ind],spar=.6)
     temp_agg <- aggregate(temp_rm$y,by=list(z_cuts),mean)
     # temp_agg <- aggregate(input[,ind],by=list(z_cuts),mean)
     names(temp_agg) <- c('depths','values')
@@ -243,9 +266,12 @@ interp_aquatroll <- function (input, # input file is the output data.frame from 
     mtext(names(input)[ind],1,line=2)
     points(temp_int$y,-temp_int$x,lwd=1.5)
     if(i==1){
-      mtext(paste('Profile index:',input[1,1],sep=' '),adj=1)
-      mtext(input$`Date Time`[1],adj=0)
+      mtext(paste('Profile index:',input[1,1],sep=' '),adj=0)
+      mtext(input$`Date Time`[1],adj=0,line=1)
     }
+  }
+  if(plot){
+    dev.off()
   }
   names(temp_out) <- c('profile_ind','date_utc','depth_m',parms)
   temp_out <- na.omit(temp_out)

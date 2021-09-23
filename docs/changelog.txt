@@ -1,5 +1,5 @@
 2021-09-23  Brendan Turley
-- aquatroll_processing.R: update function parameter listings
+- aquatroll_processing.R: update function parameter listings; update interp_aquatroll to plot interpolated data for inspection
 
 2021-09-22  Brendan Turley
 - aquatroll_processing.R: added new interpolation function interp_aquatroll to replace old function process_aquatroll
