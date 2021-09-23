@@ -1,4 +1,4 @@
-### This function processes htm files produced by Aquatroll units used by FCWC
+### These functions processes htm files produced by Aquatroll units used by FCWC
 ### coded on a Macbook, so be wary if you try to run on Windows as some of the coding is different
 # sessionInfo()
 # R version 4.1.0 (2021-05-18)
@@ -121,6 +121,123 @@ data_extract_aquatroll <- function(input){
   ### add depth units
   D$depth_unit <- depth_unit
   return(D)
+}
+
+
+###--------- interp_aquatroll
+interp_aquatroll <- function (input, parms = c('temperature','salinity','chlorophyll','oxygen'), z_min = 2, df=nrow(input)/2, resolution = 1){
+  ### rename oxygen
+  if(length(which(parms=='oxygen'))>0){
+    parms[which(parms=='oxygen')] <- 'rdo'
+  }
+  ### test for valid parameters
+  test <- sapply(parms,function(x) grep(x,names(input),ignore.case = T)) %>%
+    sapply(length)
+  if(any(test<1)){
+    names(test)[which(test<1)]
+    # print(paste(input,input,sep='/'))
+    warning(paste('\n\n Invalid parameter: \n\n',
+                  names(test)[which(test<1)],
+                  '\n\n'),
+            immediate. = T)
+  }
+  
+  ### convert feet to meters
+  if(unique(input$`depth unit`)=='(ft)'){
+    input$Depth <- NISTftTOmeter(input$Depth)
+  }
+  columns <- names(input)
+  
+  ### chlorophyll dropout
+  if(sum(is.na(input[,grep('chlorophyll',columns,ignore.case = T)[1]]))==nrow(input)){
+    input[,ind[1]] <- input[,ind[2]]*10
+  }
+  
+  ### salinity dropout
+  if(sum(is.na(input[,grep('salinity',columns,ignore.case = T)]))==nrow(input)){
+    lat <- ifelse(is.na(mean(input[,grep('latitude',columns,ignore.case = T)],na.rm=T)),27,mean(input[,grep('latitude',columns,ignore.case = T)],na.rm=T))
+    lon <- ifelse(is.na(mean(input[,grep('longitude',columns,ignore.case = T)],na.rm=T)),-82,mean(input[,grep('longitude',columns,ignore.case = T)],na.rm=T))
+    pressure_dbar <- gsw_p_from_z(-input$Depth,lat)
+    SP <- gsw_SP_from_C(input[,grep('actual',columns,ignore.case = T)]/1000,
+                        input[,grep('temperature',columns,ignore.case = T)[1]],
+                        pressure_dbar)
+    input[,grep('salinity',columns,ignore.case = T)] <- gsw_SA_from_SP(SP, pressure_dbar, lon, lat)
+  }
+  
+  ### variables of interest
+  ind_date <- grep('Date',columns)
+  ind_lat <- grep('Latitude',columns)
+  ind_lon <- grep('Longitude',columns)
+  ind_depth <- grep('Depth',columns)
+  ind_all <- c(1,ind_date,ind_lat,ind_lon,ind_depth)
+  
+  for(i in 1:length(parms)){
+    ind <- grep(parms[i],names(input),ignore.case = T)
+    if(parms[i]=='temperature'){
+      ind <- ind[grep('AT',names(input)[ind])]
+    }
+    if(parms[i]=='chlorophyll' | parms[i]=='rdo'){
+      ind <- ind[grep('Concentration',names(input)[ind])]
+    }
+    ind_all <- c(ind_all,ind)
+  }
+  ### keep only variables of interest
+  input <- as.data.frame(input[,ind_all])
+  columns <- names(input)
+  # average lon & lat, before filtering
+  lon_avg <- mean(input[,grep('Longitude',columns)], na.rm = T)
+  lat_avg <- mean(input[,grep('Latitude',columns)], na.rm = T)
+  # order by time
+  input[,grep('Date',columns)]<- ymd_hms(input[,grep('Date',columns)])
+  input <- input[order(input[,grep('Date',columns)]),]
+  # filter for downcast (not up)
+  row_end <- which.max(input$Depth)
+  input <- input[1:row_end,]
+  # filter out surface entries (< 2 m), except row immediately before
+  ind_lt2m <- which(input$Depth < z_min)
+  if (length(ind_lt2m) > 0){
+    row_beg <- max(ind_lt2m) - 1
+    input <- input[row_beg:nrow(input),]
+  }
+  if(nrow(input)<3){
+    stop('\n\n not enough data \n\n')
+  }
+  
+  ### interpolate data to smooth
+  breaks <- seq(0,ceiling(max(input$Depth)),resolution)
+  z_cuts <- cut(input$Depth,breaks=breaks+.5)
+  levels(z_cuts) <- breaks[2:length(breaks)]
+  
+  cols <- c(2,'purple',3,4)
+  temp_out <- data.frame(matrix(NA,length(breaks),length(parms)+3))
+  temp_out[,1] <- input[1,1]
+  temp_out[,2] <- input[1,2]
+  temp_out[,3] <- breaks
+  par(mfrow=c(2,2))
+  for(i in 1:length(parms)){
+    ind <- grep(parms[i],names(input),ignore.case = T)
+    
+    # temp_rm <- smooth.spline(input$Depth,input[,ind],df=nrow(input)/3)
+    temp_rm <- smooth.spline(input$Depth,input[,ind],spar=.6)
+    temp_agg <- aggregate(temp_rm$y,by=list(z_cuts),mean)
+    # temp_agg <- aggregate(input[,ind],by=list(z_cuts),mean)
+    names(temp_agg) <- c('depths','values')
+    temp_agg$depths <- as.numeric(temp_agg$depths)
+    temp_int <- approx(temp_agg$depths,temp_agg$values,xout=breaks,ties=mean)
+    ### save output 
+    temp_out[,i+3] <- temp_int$y
+    ### plot
+    plot(input[,ind],-input$Depth,col=cols[i],lwd=2,typ='l',las=1,xlab='',ylab='Depth (m)')
+    mtext(names(input)[ind],1,line=2)
+    points(temp_int$y,-temp_int$x,lwd=1.5)
+    if(i==1){
+      mtext(paste('Profile index:',input[1,1],sep=' '),adj=1)
+      mtext(input$`Date Time`[1],adj=0)
+    }
+  }
+  names(temp_out) <- c('profile_ind','date_utc','depth_m',parms)
+  temp_out <- na.omit(temp_out)
+  return(temp_out)
 }
 
 
