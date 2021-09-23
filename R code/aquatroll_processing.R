@@ -1,4 +1,5 @@
 ### These functions processes htm files produced by Aquatroll units used by FCWC
+
 ### coded on a Macbook, so be wary if you try to run on Windows as some of the coding is different
 # sessionInfo()
 # R version 4.1.0 (2021-05-18)
@@ -7,7 +8,7 @@
 
 # Last update:
 # Sys.time()
-# "2021-09-23 08:49:37 CDT"
+# "2021-09-23 09:46:16 CDT"
 # Author name: Brendan Turley
 # Contact: brendan.turley@noaa.gov
 
@@ -129,6 +130,118 @@ data_extract_aquatroll <- function(input # htm or csv file that contains the raw
   ### add depth units
   D$depth_unit <- depth_unit
   return(D)
+}
+
+
+###--------- summary_aquatroll
+summary_aquatroll <- function(input, # htm or csv file that contains the raw aquatroll output
+                              ignore.marked = T # TRUE will ignore the marked column from being exported in the output
+)
+{
+  if(file_ext(input)!='csv' & file_ext(input)!='htm'){
+    warning(paste('\n\n File format needs to be csv or htm! \n\n'),
+            immediate. = T)
+  }
+  if(file_ext(input)=='csv'){
+    D <- readLines(input)
+    # get header row of data
+    ind <- grep('Date Time',D)
+    # extract data
+    D <- read_csv(input,skip=ind-1,col_types = cols())
+    columns <- names(D)
+    H <- read.csv(input,header=F,nrows=ind-1)
+  }
+  if(file_ext(input)=='htm'){
+    H <- read_html(input) %>%
+      html_table(fill = T) %>%
+      .[[1]]
+    # get header row of data
+    row_d <- which(H[,1] == "Date Time")
+    columns <- H[row_d,]
+    # extract data
+    D <- H[(row_d+1):nrow(H),]
+    names(D) <- as.character(columns)
+  }
+  H <- data.frame(H)
+  D <- data.frame(D)
+  D[2:ncol(D)] <- lapply(D[2:ncol(D)],as.numeric)
+  ### strip serial numbers
+  names(D) <- gsub(" \\([0-9]+\\)", "", columns)
+  ### Aquatroll serial number
+  row_h <- which(H[,1] == "Device Model = Aqua TROLL 600 Vented")
+  aquatroll_sn <- as.numeric(strsplit(as.character(H[row_h+1,1]),'=')[[1]][2])
+  ### Handheld serial number
+  row_sn <- grep('Device Model',H[,1])
+  row_h2 <- setdiff(row_sn,row_h)
+  handheld_sn <- ifelse(length(row_h2)>0,
+                        as.numeric(strsplit(as.character(H[row_h2+1,1]),'=')[[1]][2]),
+                        NA)
+  ### rename temperaures
+  ind_aquatroll <- grep(aquatroll_sn,columns)
+  ### Aquatroll temperature
+  ind_temp <- grep('Temperature',columns) %>%
+    intersect(ind_aquatroll)
+  names(D)[ind_temp] <- paste(names(D)[ind_temp],'AT')
+  ### Handheld temperature
+  ind_temp2 <- grep('Temperature',columns) %>%
+    setdiff(ind_aquatroll)
+  names(D)[ind_temp2] <- paste(names(D)[ind_temp2],'HH')
+  ### what are depth units?
+  depth_unit <- substr(names(D)[grep('Depth',names(D))],7,20)
+  ### Strip depth units
+  names(D)[grep('Depth',names(D))] <- 'Depth'
+  ### missing fields
+  flds_miss <- setdiff(flds_req, names(D))
+  
+  ### datetime
+  D[,1] <- with_tz(force_tz(ymd_hms(D[,1]),tz='America/New_York'),'UTC')
+  dtime <- D[1,1] ### start time
+  # total duration
+  duration_total <- as.numeric(D[nrow(D),1]-D[1,1],units='secs')+1
+  ### lat/lon
+  if(length(grep("latitude",columns,ignore.case = T))>0){
+    lat_avg <- mean(D[,grep("latitude",columns,ignore.case = T)],na.rm=T)
+    lon_avg <- mean(D[,grep("longitude",columns,ignore.case = T)],na.rm=T)
+  } else {
+    lat_avg <- lon_avg <- NA
+  }
+  ### max depth
+  z_max <- max(D[,grep('depth',columns,ignore.case = T)],na.rm=T)
+  ### is there data dropout
+  if(ignore.marked==T){
+    M <- D[,-grep('marked',columns,ignore.case = T)]
+  }
+  missingness <- unlist(lapply(M,function(x) sum(is.na(x))))
+  columns <- names(D)
+  dropout <- columns[which(missingness>0)]
+  ### number of samples
+  n_samp <- nrow(D)
+  # order by time
+  D <- D[order(D[,grep("date",columns,ignore.case = T)]),]
+  # filter for downcast (not up)
+  row_end <- which.max(D[,grep('depth',columns,ignore.case = T)])
+  D <- D[1:row_end,]
+  # down duration
+  duration_down <- as.numeric(D[nrow(D),1]-D[1,1],units='secs')
+  # mean descent rate
+  dz_dt <- mean(abs(diff(D[,grep('depth',columns,ignore.case = T)])/
+                      as.numeric(diff(D[,grep('date',columns,ignore.case = T)]))),na.rm=T)
+  
+  ### save output
+  out <- data.frame(input=input,
+                    time_utc=dtime,
+                    aquatroll_sn=aquatroll_sn,
+                    handheld_sn=handheld_sn,
+                    n_samp=n_samp,
+                    t_duration_sec=duration_total,
+                    d_duration_sec=duration_down,
+                    z_max_m=z_max,
+                    dz_dt=dz_dt,
+                    lon_dd=lon_avg,
+                    lat_dd=lat_avg,
+                    flds_miss=toString(flds_miss),
+                    dropout=toString(dropout))
+  return(out)
 }
 
 
@@ -280,6 +393,7 @@ interp_aquatroll <- function (input, # input file is the output data.frame from 
 
 
 ###--------- process_aquatroll
+### <this function is soon to be depreciated> ###
 # The output is a list containing the raw data and a linear interpolation of the data to plot
 process_aquatroll <- function(input, # htm or csv file that contains the raw aquatroll output
                               lat=NA, # supply a latitude if you know it is missing
@@ -529,118 +643,6 @@ process_aquatroll <- function(input, # htm or csv file that contains the raw aqu
     write.csv(data_interp,paste(dtime,'_interp.csv',sep=''),row.names = F)
   }
   return(list(data_interp,D,aquatroll_sn))
-}
-
-
-###--------- summary_aquatroll
-summary_aquatroll <- function(input, # htm or csv file that contains the raw aquatroll output
-                              ignore.marked = T # TRUE will ignore the marked column from being exported in the output
-                              )
-  {
-  if(file_ext(input)!='csv' & file_ext(input)!='htm'){
-    warning(paste('\n\n File format needs to be csv or htm! \n\n'),
-            immediate. = T)
-  }
-  if(file_ext(input)=='csv'){
-    D <- readLines(input)
-    # get header row of data
-    ind <- grep('Date Time',D)
-    # extract data
-    D <- read_csv(input,skip=ind-1,col_types = cols())
-    columns <- names(D)
-    H <- read.csv(input,header=F,nrows=ind-1)
-  }
-  if(file_ext(input)=='htm'){
-    H <- read_html(input) %>%
-      html_table(fill = T) %>%
-      .[[1]]
-    # get header row of data
-    row_d <- which(H[,1] == "Date Time")
-    columns <- H[row_d,]
-    # extract data
-    D <- H[(row_d+1):nrow(H),]
-    names(D) <- as.character(columns)
-  }
-  H <- data.frame(H)
-  D <- data.frame(D)
-  D[2:ncol(D)] <- lapply(D[2:ncol(D)],as.numeric)
-  ### strip serial numbers
-  names(D) <- gsub(" \\([0-9]+\\)", "", columns)
-  ### Aquatroll serial number
-  row_h <- which(H[,1] == "Device Model = Aqua TROLL 600 Vented")
-  aquatroll_sn <- as.numeric(strsplit(as.character(H[row_h+1,1]),'=')[[1]][2])
-  ### Handheld serial number
-  row_sn <- grep('Device Model',H[,1])
-  row_h2 <- setdiff(row_sn,row_h)
-  handheld_sn <- ifelse(length(row_h2)>0,
-                        as.numeric(strsplit(as.character(H[row_h2+1,1]),'=')[[1]][2]),
-                        NA)
-  ### rename temperaures
-  ind_aquatroll <- grep(aquatroll_sn,columns)
-  ### Aquatroll temperature
-  ind_temp <- grep('Temperature',columns) %>%
-    intersect(ind_aquatroll)
-  names(D)[ind_temp] <- paste(names(D)[ind_temp],'AT')
-  ### Handheld temperature
-  ind_temp2 <- grep('Temperature',columns) %>%
-    setdiff(ind_aquatroll)
-  names(D)[ind_temp2] <- paste(names(D)[ind_temp2],'HH')
-  ### what are depth units?
-  depth_unit <- substr(names(D)[grep('Depth',names(D))],7,20)
-  ### Strip depth units
-  names(D)[grep('Depth',names(D))] <- 'Depth'
-  ### missing fields
-  flds_miss <- setdiff(flds_req, names(D))
-  
-  ### datetime
-  D[,1] <- with_tz(force_tz(ymd_hms(D[,1]),tz='America/New_York'),'UTC')
-  dtime <- D[1,1] ### start time
-  # total duration
-  duration_total <- as.numeric(D[nrow(D),1]-D[1,1],units='secs')+1
-  ### lat/lon
-  if(length(grep("latitude",columns,ignore.case = T))>0){
-    lat_avg <- mean(D[,grep("latitude",columns,ignore.case = T)],na.rm=T)
-    lon_avg <- mean(D[,grep("longitude",columns,ignore.case = T)],na.rm=T)
-  } else {
-    lat_avg <- lon_avg <- NA
-  }
-  ### max depth
-  z_max <- max(D[,grep('depth',columns,ignore.case = T)],na.rm=T)
-  ### is there data dropout
-  if(ignore.marked==T){
-    M <- D[,-grep('marked',columns,ignore.case = T)]
-  }
-  missingness <- unlist(lapply(M,function(x) sum(is.na(x))))
-  columns <- names(D)
-  dropout <- columns[which(missingness>0)]
-  ### number of samples
-  n_samp <- nrow(D)
-  # order by time
-  D <- D[order(D[,grep("date",columns,ignore.case = T)]),]
-  # filter for downcast (not up)
-  row_end <- which.max(D[,grep('depth',columns,ignore.case = T)])
-  D <- D[1:row_end,]
-  # down duration
-  duration_down <- as.numeric(D[nrow(D),1]-D[1,1],units='secs')
-  # mean descent rate
-  dz_dt <- mean(abs(diff(D[,grep('depth',columns,ignore.case = T)])/
-                      as.numeric(diff(D[,grep('date',columns,ignore.case = T)]))),na.rm=T)
-  
-  ### save output
-  out <- data.frame(input=input,
-                    time_utc=dtime,
-                    aquatroll_sn=aquatroll_sn,
-                    handheld_sn=handheld_sn,
-                    n_samp=n_samp,
-                    t_duration_sec=duration_total,
-                    d_duration_sec=duration_down,
-                    z_max_m=z_max,
-                    dz_dt=dz_dt,
-                    lon_dd=lon_avg,
-                    lat_dd=lat_avg,
-                    flds_miss=toString(flds_miss),
-                    dropout=toString(dropout))
-  return(out)
 }
 
 
