@@ -4,8 +4,12 @@
 # R version 4.1.0 (2021-05-18)
 # Platform: x86_64-apple-darwin17.0 (64-bit)
 # Running under: macOS Big Sur 11.2.3
+
+# Last update:
 # Sys.time()
-# "2021-09-22 10:02:54 CDT"
+# "2021-09-23 08:49:37 CDT"
+# Author name: Brendan Turley
+# Contact: brendan.turley@noaa.gov
 
 
 ###--------- R packages
@@ -28,7 +32,9 @@ if(as.numeric(r$major)<4 & as.numeric(r$minor)<1){
 
 
 ###--------- data_extract_aquatroll
-data_extract_aquatroll <- function(input){
+data_extract_aquatroll <- function(input # htm or csv file that contains the raw aquatroll output
+                                   )
+  {
   ### fields required for exporting raw data
   flds_req <- c("Date Time",
                 "Salinity (ppt)",
@@ -127,7 +133,12 @@ data_extract_aquatroll <- function(input){
 
 
 ###--------- interp_aquatroll
-interp_aquatroll <- function (input, parms = c('temperature','salinity','chlorophyll','oxygen'), z_min = 2, df=nrow(input)/2, resolution = 1){
+interp_aquatroll <- function (input, # input file is the output data.frame from data_extract_aquatroll function
+                              parms = c('temperature','salinity','chlorophyll','oxygen'), # parameters that you want to extract, smooth, and interpolate
+                              z_min = 2, # depth cutoff to start interpolation, typically there is a soak period at the surface where readings are unreliable
+                              resolution = 1 # resolution in meters of the interpolation
+                              )
+  {
   ### rename oxygen
   if(length(which(parms=='oxygen'))>0){
     parms[which(parms=='oxygen')] <- 'rdo'
@@ -218,9 +229,8 @@ interp_aquatroll <- function (input, parms = c('temperature','salinity','chlorop
   par(mfrow=c(2,2))
   for(i in 1:length(parms)){
     ind <- grep(parms[i],names(input),ignore.case = T)
-    
-    # temp_rm <- smooth.spline(input$Depth,input[,ind],df=nrow(input)/3)
-    temp_rm <- smooth.spline(input$Depth,input[,ind],spar=.6)
+    temp_rm <- smooth.spline(input$Depth,input[,ind],df=nrow(input)/3)
+    # temp_rm <- smooth.spline(input$Depth,input[,ind],spar=.6)
     temp_agg <- aggregate(temp_rm$y,by=list(z_cuts),mean)
     # temp_agg <- aggregate(input[,ind],by=list(z_cuts),mean)
     names(temp_agg) <- c('depths','values')
@@ -244,15 +254,18 @@ interp_aquatroll <- function (input, parms = c('temperature','salinity','chlorop
 
 
 ###--------- process_aquatroll
-# The input is the raw htm file
 # The output is a list containing the raw data and a linear interpolation of the data to plot
-# there are several options:
-# 1. input lat/lon if you know it is missing, else the code checks and give you a warning
-# 2. specify the resolution of the linear interpolation of the data out
-# 3. write two processed csv files, the interpolated data and the raw data
-# 4. set the working directory for the output csv files, if na, it reverts to the current working directory
-# 5. the interpolated data will plot out for visual inspection
-process_aquatroll <- function(input, lat=NA, lon=NA, resolution=1, z_min=2, span=5, write_csv=T, set_wd=NA, plot=T){
+process_aquatroll <- function(input, # htm or csv file that contains the raw aquatroll output
+                              lat=NA, # supply a latitude if you know it is missing
+                              lon=NA, # supply a longitude if you know it is missing
+                              resolution=1, # resolution in meters of the linear interpolation
+                              z_min=2, # depth cutoff to start interpolation, typically there is a soak period at the surface where readings are unreliable
+                              span=5, # span to calculate centered moving average
+                              write_csv=T, # TRUE to save output as two csv files: the interpolated data and the raw data 
+                              set_wd=NA, # set the working directory to save csv and plots; if NA, it reverts to the current working directory
+                              plot=T # TRUE to plot interpolated data for visual inspection
+                              )
+  {
   if(file_ext(input)!='csv' & file_ext(input)!='htm'){
     warning(paste('\n\n File format needs to be csv or htm! \n\n'),
             immediate. = T)
@@ -494,7 +507,10 @@ process_aquatroll <- function(input, lat=NA, lon=NA, resolution=1, z_min=2, span
 
 
 ###--------- summary_aquatroll
-summary_aquatroll <- function(input,  ignore.marked=T){
+summary_aquatroll <- function(input, # htm or csv file that contains the raw aquatroll output
+                              ignore.marked = T # TRUE will ignore the marked column from being exported in the output
+                              )
+  {
   if(file_ext(input)!='csv' & file_ext(input)!='htm'){
     warning(paste('\n\n File format needs to be csv or htm! \n\n'),
             immediate. = T)
@@ -605,7 +621,10 @@ summary_aquatroll <- function(input,  ignore.marked=T){
 ###--------- bottom_finder
 ### finds the max depth per station for plotting bottom on section plots
 ### better method would be to find bathymetry from gridded bathymetry like ETOPO1 or CRM
-bottom_finder <- function(longitudes,depths){
+bottom_finder <- function(longitudes, # vector of longitudes
+                          depths # vector of depths corresponding to the longitudes
+                          )
+  {
   unique_lon <- unique(longitudes)
   bottom <- matrix(NA,length(unique_lon),2)
   for(i in 1:length(unique_lon)){
@@ -617,8 +636,12 @@ bottom_finder <- function(longitudes,depths){
 }
 
 
-### creates breaks for color palettes
-breaks <- function(x,int,decimal=F){
+###--------- creates breaks for color palettes
+breaks <- function(x, # vector of values to calculate breaks
+                   int, # number: increment of the sequence
+                   decimal = F # decimal is good for chlorophyll or other values logarithmic space
+                   )
+  {
   r_range <- range(x,na.rm=T)
   if(decimal){ ### decimal is good for chlorophyll or other values logarithmic space
     seqs <- seq(round(r_range[1],2),round(r_range[2],2),by=int)
@@ -629,11 +652,13 @@ breaks <- function(x,int,decimal=F){
 }
 
 
-### running linear slope and mean
-### x and y are vectors used to calculate slope and mean
-### r is the span to calculate the running parameter
-### b is to indicate whether to calculate the running slope (1), mean (2), or both (3)
-running  <- function (x,y,r,b){
+###--------- running linear slope and mean
+running  <- function (x, # x vector used to calculate slope and mean
+                      y, # y vector used to calculate slope and mean
+                      r, # span to calculate the running parameter
+                      b # indicate whether to calculate the running slope (1), mean (2), or both (3)
+                      )
+  {
   ind <- floor(r/2)
   y.t <- rep(NA,length(y))
   y.t4 <- rep(NA,length(y))
