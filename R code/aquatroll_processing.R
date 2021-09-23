@@ -11,6 +11,8 @@
 ###--------- R packages
 require(gsw)
 require(lubridate)
+require(magrittr)
+require(NISTunits)
 require(readr)
 require(rvest)
 require(tools)
