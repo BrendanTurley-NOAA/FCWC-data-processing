@@ -129,6 +129,8 @@ data_extract_aquatroll <- function(input # htm or csv file that contains the raw
   D$aquatroll_sn <- aquatroll_sn
   ### add depth units
   D$depth_unit <- depth_unit
+  ### output
+  D[,c(2:22,24)] <- sapply(D[,c(2:22,24)],as.numeric)
   return(D)
 }
 
@@ -138,6 +140,31 @@ summary_aquatroll <- function(input, # htm or csv file that contains the raw aqu
                               ignore.marked = T # TRUE will ignore the marked column from being exported in the output
 )
 {
+  ### fields required for exporting raw data
+  flds_req <- c("Date Time",
+                "Salinity (ppt)",
+                "Temperature (°C) AT",
+                "Depth",
+                "Pressure (psi)",
+                "Actual Conductivity (µS/cm)",
+                "Specific Conductivity (µS/cm)",
+                "Total Dissolved Solids (ppt)",
+                "Resistivity (Ω⋅cm)",
+                "Density (g/cm³)",
+                "Barometric Pressure (mm Hg)",
+                "RDO Concentration (mg/L)",
+                "RDO Saturation (%Sat)",
+                "Oxygen Partial Pressure (Torr)",
+                "Chlorophyll-a Fluorescence (RFU)",
+                "Chlorophyll-a Concentration (µg/L)",
+                "Battery Capacity (%)",
+                "External Voltage (V)",
+                "Barometric Pressure (mbar)",
+                "Temperature (°C) HH",
+                "Latitude (°)",
+                "Longitude (°)",
+                "Marked")
+  
   if(file_ext(input)!='csv' & file_ext(input)!='htm'){
     warning(paste('\n\n File format needs to be csv or htm! \n\n'),
             immediate. = T)
@@ -271,7 +298,7 @@ interp_aquatroll <- function (input, # input file is the output data.frame from 
   }
   
   ### convert feet to meters
-  if(unique(input$`depth unit`)=='(ft)'){
+  if(unique(input[grep('unit',names(input))])=='(ft)'){
     input$Depth <- NISTftTOmeter(input$Depth)
   }
   columns <- names(input)
