@@ -276,6 +276,7 @@ summary_aquatroll <- function(input, # htm or csv file that contains the raw aqu
 interp_aquatroll <- function (input, # input file is the output data.frame from data_extract_aquatroll function
                               parms = c('temperature','salinity','chlorophyll','oxygen'), # parameters that you want to extract, smooth, and interpolate
                               z_min = 2, # depth cutoff to start interpolation, typically there is a soak period at the surface where readings are unreliable
+                              spar = .6, # smoothing parameter for smooth.spline before interpolation; values 0:1 with higher values are more smooth
                               resolution = 1, # resolution in meters of the interpolation
                               set_wd=NA, # set the working directory to save csv and plots; if NA, it reverts to the current working directory
                               plot=T # TRUE to plot interpolated data for visual inspection
@@ -324,7 +325,7 @@ interp_aquatroll <- function (input, # input file is the output data.frame from 
   ind_lat <- grep('Latitude',columns)
   ind_lon <- grep('Longitude',columns)
   ind_depth <- grep('Depth',columns)
-  ind_all <- c(1,ind_date,ind_lat,ind_lon,ind_depth)
+  ind_all <- c(ind_date,ind_lat,ind_lon,ind_depth)
   
   for(i in 1:length(parms)){
     ind <- grep(parms[i],names(input),ignore.case = T)
@@ -393,7 +394,7 @@ interp_aquatroll <- function (input, # input file is the output data.frame from 
   for(i in 1:length(parms)){
     ind <- grep(parms[i],names(input),ignore.case = T)
     # temp_rm <- smooth.spline(input$Depth,input[,ind],df=nrow(input)/3)
-    temp_rm <- smooth.spline(input$Depth,input[,ind],spar=.6)
+    temp_rm <- smooth.spline(input$Depth,input[,ind],spar=spar)
     temp_agg <- aggregate(temp_rm$y,by=list(z_cuts),mean)
     # temp_agg <- aggregate(input[,ind],by=list(z_cuts),mean)
     names(temp_agg) <- c('depths','values')
@@ -406,8 +407,7 @@ interp_aquatroll <- function (input, # input file is the output data.frame from 
     mtext(names(input)[ind],1,line=2)
     points(temp_int$y,-temp_int$x,lwd=1.5)
     if(i==1){
-      mtext(paste('Profile index:',input[1,1],sep=' '),adj=0)
-      mtext(input$`Date Time`[1],adj=0,line=1)
+      mtext(input[1,grep('Date',columns)],adj=0)
     }
   }
   if(plot){

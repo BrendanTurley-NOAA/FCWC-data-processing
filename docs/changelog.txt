@@ -1,4 +1,8 @@
 2021-09-23  Brendan Turley
+- aquatroll_processing.R: update data_extract_aquatroll to export numeric columns because direct pipe into interp_aquatroll was causing errors; update interp_aquatroll to no longer recognize profile index column, which I added in a processing step outside these defined functions
+- added FCWC_vignette.R to show example processing pipeline; this is a work in progress
+
+2021-09-23  Brendan Turley
 - aquatroll_processing.R: update function parameter listings; update interp_aquatroll to plot interpolated data for inspection
 
 2021-09-22  Brendan Turley
