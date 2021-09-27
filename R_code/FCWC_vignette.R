@@ -83,7 +83,7 @@ o_cols <- c(ox.col1(length(o_breaks[o_breaks<2])),
             ox.col3(length(o_breaks[o_breaks>=3.5])-1))
 
 
-
+### plot it out
 imagePlot(temp_int$x,
       temp_int$y,
       temp_int$z,
@@ -93,7 +93,6 @@ polygon(bots$lon,
         bots$z,
         col='wheat4')
 points(output$lon_dd,output$depth_m,pch=20,cex=.5,col='green')
-
 
 imagePlot(sal_int$x,
           sal_int$y,
