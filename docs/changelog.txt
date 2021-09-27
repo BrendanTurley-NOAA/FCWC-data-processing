@@ -1,3 +1,6 @@
+2021-09-27  Brendan Turley
+- aquatroll_processing.R: fix interp_aquatroll so it does not look for profile index and now includes lat/lon as output; update bottom_finder funciton so output can be used as a polygon without extra processing
+
 2021-09-23  Brendan Turley
 - aquatroll_processing.R: update data_extract_aquatroll to export numeric columns because direct pipe into interp_aquatroll was causing errors; update interp_aquatroll to no longer recognize profile index column, which I added in a processing step outside these defined functions
 - added FCWC_vignette.R to show example processing pipeline; this is a work in progress
