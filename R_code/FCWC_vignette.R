@@ -21,7 +21,7 @@ for(i in 1:length(files)){
   ### process input file
   file_sum[i,] <- summary_aquatroll(input)
   raw_d <- data_extract_aquatroll(input)
-  interp_d <- interp_aquatroll(raw_d,spar=.6)
+  interp_d <- interp_aquatroll(raw_d)
   ### add number of rows to counters to save data
   k <- k + nrow(raw_d)
   n <- n + nrow(interp_d)
@@ -43,7 +43,7 @@ unique(output$date_utc)
 
 plot(output$lon_dd,output$lat_dd,asp=1)
 
-### fingind bottom
+### finding bottom
 bots <- bottom_finder(output$lon_dd,output$depth_m)
 ### resolution for interpolation
 z_res <- 100

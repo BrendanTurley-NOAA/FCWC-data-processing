@@ -1,15 +1,15 @@
 library(akima)
 library(gsw)
 library(lubridate)
-library(plotrix)
+# library(plotrix)
 library(rgdal)
 
 ### read map data
-setwd("~/Desktop/FCWC/shapefile")
+setwd("~/Documents/R/Github/FCWC-data-processing/shapefile")
 world <- readOGR('ne_10m_admin_0_countries.shp')
 
 ### look for cruises
-setwd("~/Desktop/FCWC/data")
+setwd("~/Documents/R/Github/FCWC-data-processing/data/csv")
 cruises <- list.files()
 
 cr <- 1 ### which cruise, there is only one in this example
