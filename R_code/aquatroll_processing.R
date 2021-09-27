@@ -30,12 +30,13 @@ if(as.numeric(r$major)<4 & as.numeric(r$minor)<1){
                 You are running an older version; some compatability issues may exist! \n\n'),
           immediate. = T)
 }
+rm(r)
 
 
 ###--------- data_extract_aquatroll
 data_extract_aquatroll <- function(input # htm or csv file that contains the raw aquatroll output
-                                   )
-  {
+)
+{
   ### fields required for exporting raw data
   flds_req <- c("Date Time",
                 "Salinity (ppt)",
@@ -387,10 +388,11 @@ interp_aquatroll <- function (input, # input file is the output data.frame from 
   par(mfrow=c(2,2))
   
   ### empty data.frame to store output
-  temp_out <- data.frame(matrix(NA,length(breaks),length(parms)+3))
-  temp_out[,1] <- input[1,1]
-  temp_out[,2] <- input[1,2]
-  temp_out[,3] <- breaks
+  temp_out <- data.frame(matrix(NA,length(breaks),length(parms)+4))
+  temp_out[,1] <- as.character(input[1,1])
+  temp_out[,2] <- lon_avg
+  temp_out[,3] <- lat_avg
+  temp_out[,4] <- breaks
   for(i in 1:length(parms)){
     ind <- grep(parms[i],names(input),ignore.case = T)
     # temp_rm <- smooth.spline(input$Depth,input[,ind],df=nrow(input)/3)
@@ -401,7 +403,7 @@ interp_aquatroll <- function (input, # input file is the output data.frame from 
     temp_agg$depths <- as.numeric(temp_agg$depths)
     temp_int <- approx(temp_agg$depths,temp_agg$values,xout=breaks,ties=mean)
     ### save output 
-    temp_out[,i+3] <- temp_int$y
+    temp_out[,i+4] <- temp_int$y
     ### plot
     plot(input[,ind],-input$Depth,col=cols[i],lwd=2,typ='l',las=1,xlab='',ylab='Depth (m)')
     mtext(names(input)[ind],1,line=2)
@@ -413,8 +415,8 @@ interp_aquatroll <- function (input, # input file is the output data.frame from 
   if(plot){
     dev.off()
   }
-  names(temp_out) <- c('profile_ind','date_utc','depth_m',parms)
-  temp_out <- na.omit(temp_out)
+  names(temp_out) <- c('date_utc','lon_dd','lat_dd','depth_m',parms)
+  temp_out <- temp_out[which(!is.na(temp_out$temperature)),]
   return(temp_out)
 }
 
@@ -684,9 +686,12 @@ bottom_finder <- function(longitudes, # vector of longitudes
   bottom <- matrix(NA,length(unique_lon),2)
   for(i in 1:length(unique_lon)){
     indx <- which.min(depths[longitudes==unique_lon[i]])
-    bottom[i,1] <- depths[longitudes==unique_lon[i]][indx]
-    bottom[i,2] <- unique_lon[i]
+    bottom[i,1] <- unique_lon[i]
+    bottom[i,2] <- depths[longitudes==unique_lon[i]][indx]
   }
+  bottom <- bottom[order(bottom[,1]),]
+  bottom <- data.frame(lon=c(bottom[1,1]-1,bottom[,1],bottom[nrow(bottom),1]+1),
+                       z=c(bottom[1,2]-100,bottom[,2],bottom[nrow(bottom),2]-100))
   return(bottom)
 }
 
