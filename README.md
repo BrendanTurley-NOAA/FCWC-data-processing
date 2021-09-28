@@ -17,6 +17,14 @@ The current code does not perform explicit quality control on the data; however,
 
 ---
 
+# Details
+
+The overall objective of the code is produce a visual data product that can be distributed to various stakeholders, including the fishermen that collect the data.
+
+![alt text](https://https://github.com/imaginaryfish/FCWC-data-processing/blob/master/figures/example.png "Example data product")
+
+---
+
 To do 
 
 * make vignette on how to use functions with example data
