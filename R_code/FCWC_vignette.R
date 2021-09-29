@@ -52,7 +52,7 @@ for(i in 1:length(files)){
   ### update progress bar
   setTxtProgressBar(pb, i)
 }
-### renames columns of output dataframs
+### renames columns of output dataframes
 names(out) <- names(raw_d)
 names(output) <- names(interp_d)
 ### removes empty rows
@@ -63,10 +63,11 @@ output$depth_m <- -(output$depth_m)
 
 ### plot out locations to see where they are
 plot(output$lon_dd,output$lat_dd,
-     xlim=c(-82.7,-82),ylim=c(26,27),
+     xlim=c(min(output$lon_dd)-.5,max(output$lon_dd)+.5),
+     ylim=c(min(output$lat_dd)-.5,max(output$lat_dd)+.5),
      asp=1,bg='orange',pch=21,las=1,
      xlab='Longitude',ylab='Latitude')
-plot(world, add=T, col='gray80')
+plot(world,add=T,col='gray80')
 grid()
 
 
