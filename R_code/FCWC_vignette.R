@@ -1,17 +1,25 @@
+### AquaTroll processing vignette
+
+### load librarys for vizualisation
 library(akima)
 library(fields)
 
-### vignette
-source('~/Documents/R/Github/FCWC-data-processing/R_code/aquatroll_processing.R')
+### define computer specifc path to R project
+path2proj <- '~/Documents/R/Github/'
+### load necessary aquatroll processing functions
+source(paste0(path2proj,'FCWC-data-processing/R_code/aquatroll_processing.R'))
 
-setwd('~/Documents/R/Github/FCWC-data-processing/data/2019-10-15')
+### find and names files for input
+setwd(paste0(path2proj,'FCWC-data-processing/data/2019-10-15'))
 files <- list.files()
 ind <- grep('htm',files)
 files <- files[ind]
 
+### empty dataframes for storing output
 file_sum <- data.frame(matrix(NA,length(files),13))
 out <- data.frame(matrix(NA,1000,25))
 output <- data.frame(matrix(NA,1000,8))
+### counters to keep track of output
 j <- 1
 k <- 0
 m <- 1
@@ -32,17 +40,18 @@ for(i in 1:length(files)){
   j <- k + 1
   m <- n + 1
 }
+### renames columns of output dataframs
 names(out) <- names(raw_d)
 names(output) <- names(interp_d)
+### removes empty rows
 out <- out[!is.na(out$`Date Time`),]
 output <- output[!is.na(output$date_utc),]
+### makes depth negative going downward; easier for visualization
 output$depth_m <- -(output$depth_m)
 
-
-unique(output$date_utc)
-
-plot(output$lon_dd,output$lat_dd,asp=1)
-
+### plot out locations to see where they are
+plot(output$lon_dd,output$lat_dd,asp=1,xlim=c(-82.7,-82),ylim=c(26.4,26.9))
+plot(coast,add=T,fill='gray80')
 ### finding bottom
 bots <- bottom_finder(output$lon_dd,output$depth_m)
 ### resolution for interpolation
@@ -85,10 +94,10 @@ o_cols <- c(ox.col1(length(o_breaks[o_breaks<2])),
 
 ### plot it out
 imagePlot(temp_int$x,
-      temp_int$y,
-      temp_int$z,
-      breaks=t_breaks,
-      col=t_cols)
+          temp_int$y,
+          temp_int$z,
+          breaks=t_breaks,
+          col=t_cols)
 polygon(bots$lon,
         bots$z,
         col='wheat4')
