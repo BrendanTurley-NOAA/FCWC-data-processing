@@ -283,6 +283,8 @@ interp_aquatroll <- function (input, # input file is the output data.frame from 
                               plot=T # TRUE to plot interpolated data for visual inspection
 )
 {
+  ### save current working directory
+  wd_now <- getwd()
   ### rename oxygen
   if(length(which(parms=='oxygen'))>0){
     parms[which(parms=='oxygen')] <- 'rdo'
@@ -378,7 +380,8 @@ interp_aquatroll <- function (input, # input file is the output data.frame from 
   ### for plotting
   if(plot){
     if(is.na(set_wd)){
-      setwd(paste(getwd()))
+      # setwd(paste(getwd()))
+      setwd(paste(wd_now))
     } else {
       setwd(paste(set_wd))
     }
@@ -415,6 +418,9 @@ interp_aquatroll <- function (input, # input file is the output data.frame from 
   if(plot){
     dev.off()
   }
+  ### return to original working directory
+  setwd(paste(wd_now))
+  ### rename columns for output
   names(temp_out) <- c('date_utc','lon_dd','lat_dd','depth_m',parms)
   temp_out <- temp_out[which(!is.na(temp_out$temperature)),]
   return(temp_out)

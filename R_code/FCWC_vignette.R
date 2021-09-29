@@ -6,7 +6,7 @@ library(fields)
 library(rgdal)
 
 ### define computer specific path to R project
-### this assumes you have clone the github repository: https://github.com/imaginaryfish/FCWC-data-processing.git
+### this assumes you have a clone of the github repository: https://github.com/imaginaryfish/FCWC-data-processing.git
 path2proj <- '~/Documents/R/Github/'
 ### load necessary aquatroll processing functions
 source(paste0(path2proj,'FCWC-data-processing/R_code/aquatroll_processing.R'))
@@ -18,7 +18,7 @@ world <- readOGR('ne_10m_admin_0_countries.shp')
 ### find and names files for input
 setwd(paste0(path2proj,'FCWC-data-processing/data/2019-10-15'))
 files <- list.files()
-ind <- grep('htm',files)
+ind <- grep('htm',files) ### only call the htm files
 files <- files[ind]
 
 ### empty dataframes for storing output
@@ -30,12 +30,14 @@ j <- 1
 k <- 0
 m <- 1
 n <- 0
+### where to save output plots
+plot_wd <- paste0(path2proj,'FCWC-data-processing/figures')
 for(i in 1:length(files)){
   input <- files[i]
   ### process input file
   file_sum[i,] <- summary_aquatroll(input)
   raw_d <- data_extract_aquatroll(input)
-  interp_d <- interp_aquatroll(raw_d)
+  interp_d <- interp_aquatroll(raw_d,set_wd=plot_wd)
   ### add number of rows to counters to save data
   k <- k + nrow(raw_d)
   n <- n + nrow(interp_d)
@@ -141,9 +143,9 @@ imagePlot(temp_int$x,
           xlab='Longitude',ylab='Depth (m)',las=1)
 mtext(expression(paste('Temperature (',degree,'C)')),adj=1)
 contour(temp_int$x,
-          temp_int$y,
-          temp_int$z,
-          levels=t_breaks,
+        temp_int$y,
+        temp_int$z,
+        levels=t_breaks,
         add=T)
 polygon(bots$lon,
         bots$z,
