@@ -1,4 +1,7 @@
 2021-09-27  Brendan Turley
+- aquatroll_processing.R: interp_aquatroll now saves current working directory so it returns to htm locations after saving profile plots in different directory
+
+2021-09-27  Brendan Turley
 - aquatroll_processing.R: fix interp_aquatroll so it does not look for profile index and now includes lat/lon as output; update bottom_finder funciton so output can be used as a polygon without extra processing
 - FCWC_vignette.R: updated wored example to produce interpolated profiles (with colorbars!)
 

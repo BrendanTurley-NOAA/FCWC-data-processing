@@ -32,6 +32,8 @@ m <- 1
 n <- 0
 ### where to save output plots
 plot_wd <- paste0(path2proj,'FCWC-data-processing/figures')
+### progress bar
+pb <- txtProgressBar(min = 0, max = length(files), style = 3)
 for(i in 1:length(files)){
   input <- files[i]
   ### process input file
@@ -47,6 +49,8 @@ for(i in 1:length(files)){
   ### add one to counters to save data for next iteration
   j <- k + 1
   m <- n + 1
+  ### update progress bar
+  setTxtProgressBar(pb, i)
 }
 ### renames columns of output dataframs
 names(out) <- names(raw_d)
