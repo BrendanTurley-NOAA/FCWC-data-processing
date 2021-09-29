@@ -221,17 +221,21 @@ mtext('Depth (m)',2,line=3)
 plot(output$lon_dd,output$lat_dd,
      xlim=c(min(output$lon_dd)-.5,max(output$lon_dd)+.5),
      ylim=c(min(output$lat_dd)-.5,max(output$lat_dd)+.5),
-     asp=1,las=1,typ='l',lwd=2,
-     xlab='',ylab='')
+     asp=1,las=1,typ='l',lwd=5,col='dodgerblue',
+     xlab='',ylab='',xaxt='n',yaxt='n')
+plot(world,add=T,col='gray75')
 points(output$lon_dd,output$lat_dd,
        bg='orange',pch=21,cex=1.5)
-plot(world,add=T,col='gray80')
 mtext(expression(paste('Longitude (',degree,'W)')),1,line=3)
 mtext(expression(paste('Latitude (',degree,'N)')),2,line=3)
+axis(1,seq(floor(min(output$lon_dd)-.5),ceiling(max(output$lon_dd)+.5),.5),las=1)
+axis(2,seq(floor(min(output$lat_dd)-.5),ceiling(max(output$lat_dd)+.5),.5),las=1)
 mtext(paste(year(output$date_utc[1]),
             month.abb[month(output$date_utc[1])],
             day(output$date_utc[1]),sep='-'),
       3,line=0.2,adj=1)
-grid()
+abline(v=seq(floor(min(output$lon_dd)-.5),ceiling(max(output$lon_dd)+.5),.5),
+        h=seq(floor(min(output$lat_dd)-.5),ceiling(max(output$lat_dd)+.5),.5),
+       lty=2,col='gray80')
 dev.off()
 
