@@ -58,17 +58,10 @@ names(output) <- names(interp_d)
 ### removes empty rows
 out <- out[!is.na(out$`Date Time`),]
 output <- output[!is.na(output$date_utc),]
+### makes dates
+output$date_utc <- ymd_hms(output$date_utc)
 ### makes depth negative going downward; easier for visualization
 output$depth_m <- -(output$depth_m)
-
-### plot out locations to see where they are
-plot(output$lon_dd,output$lat_dd,
-     xlim=c(min(output$lon_dd)-.5,max(output$lon_dd)+.5),
-     ylim=c(min(output$lat_dd)-.5,max(output$lat_dd)+.5),
-     asp=1,bg='orange',pch=21,las=1,
-     xlab='Longitude',ylab='Latitude')
-plot(world,add=T,col='gray80')
-grid()
 
 
 ### finding bottom
@@ -140,12 +133,19 @@ o_cols <- c(ox.col1(length(o_breaks[o_breaks<2])),
 
 
 ### plot it out
+setwd(plot_wd)
+png(paste('FCWC_',paste(year(output$date_utc[1]),
+                        month.abb[month(output$date_utc[1])],
+                        day(output$date_utc[1]),sep='-'),
+          '.png',sep=''),
+    width = 7.5, height = 9.5, units = 'in', res = 300)
+par(mfrow=c(3,2),mar=c(5,5,2,2))
 imagePlot(temp_int$x,
           temp_int$y,
           temp_int$z,
           breaks=t_breaks,
           col=t_cols,
-          xlab='Longitude',ylab='Depth (m)',las=1)
+          xlab='',ylab='',las=1)
 mtext(expression(paste('Temperature (',degree,'C)')),adj=1)
 contour(temp_int$x,
         temp_int$y,
@@ -156,13 +156,15 @@ polygon(bots$lon,
         bots$z,
         col='wheat4')
 points(output$lon_dd,output$depth_m,pch=20,cex=.5,col='gray80')
+mtext(expression(paste('Longitude (',degree,'W)')),1,line=3)
+mtext('Depth (m)',2,line=3)
 
 imagePlot(sal_int$x,
           sal_int$y,
           sal_int$z,
           breaks=s_breaks,
           col=s_cols,
-          xlab='Longitude',ylab='Depth (m)',las=1)
+          xlab='',ylab='',las=1)
 mtext('Salinity (ppt)',adj=1)
 contour(sal_int$x,
         sal_int$y,
@@ -173,13 +175,15 @@ polygon(bots$lon,
         bots$z,
         col='wheat4')
 points(output$lon_dd,output$depth_m,pch=20,cex=.5,col='gray80')
+mtext(expression(paste('Longitude (',degree,'W)')),1,line=3)
+mtext('Depth (m)',2,line=3)
 
 imagePlot(chl_int$x,
           chl_int$y,
           chl_int$z,
           breaks=c_breaks,
           col=c_cols,
-          xlab='Longitude',ylab='Depth (m)',las=1)
+          xlab='',ylab='',las=1)
 mtext(expression(paste('Chlorophyll (',mu,'g l'^-1,')')),adj=1)
 contour(chl_int$x,
         chl_int$y,
@@ -190,13 +194,15 @@ polygon(bots$lon,
         bots$z,
         col='wheat4')
 points(output$lon_dd,output$depth_m,pch=20,cex=.5,col='gray80')
+mtext(expression(paste('Longitude (',degree,'W)')),1,line=3)
+mtext('Depth (m)',2,line=3)
 
 imagePlot(do_int$x,
           do_int$y,
           do_int$z,
           breaks=o_breaks,
           col=o_cols,
-          xlab='Longitude',ylab='Depth (m)',las=1)
+          xlab='',ylab='',las=1)
 mtext(expression(paste('Dissolved Oxygen (mg l'^-1,')')),adj=1)
 contour(do_int$x,
         do_int$y,
@@ -207,5 +213,25 @@ polygon(bots$lon,
         bots$z,
         col='wheat4')
 points(output$lon_dd,output$depth_m,pch=20,cex=.5,col='gray80')
+mtext(expression(paste('Longitude (',degree,'W)')),1,line=3)
+mtext('Depth (m)',2,line=3)
 
+
+### plot out locations to see where they are
+plot(output$lon_dd,output$lat_dd,
+     xlim=c(min(output$lon_dd)-.5,max(output$lon_dd)+.5),
+     ylim=c(min(output$lat_dd)-.5,max(output$lat_dd)+.5),
+     asp=1,las=1,typ='l',lwd=2,
+     xlab='',ylab='')
+points(output$lon_dd,output$lat_dd,
+       bg='orange',pch=21,cex=1.5)
+plot(world,add=T,col='gray80')
+mtext(expression(paste('Longitude (',degree,'W)')),1,line=3)
+mtext(expression(paste('Latitude (',degree,'N)')),2,line=3)
+mtext(paste(year(output$date_utc[1]),
+            month.abb[month(output$date_utc[1])],
+            day(output$date_utc[1]),sep='-'),
+      3,line=0.2,adj=1)
+grid()
+dev.off()
 
