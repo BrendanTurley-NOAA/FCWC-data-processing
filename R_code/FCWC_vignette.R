@@ -3,11 +3,17 @@
 ### load librarys for vizualisation
 library(akima)
 library(fields)
+library(rgdal)
 
-### define computer specifc path to R project
+### define computer specific path to R project
+### this assumes you have clone the github repository: https://github.com/imaginaryfish/FCWC-data-processing.git
 path2proj <- '~/Documents/R/Github/'
 ### load necessary aquatroll processing functions
 source(paste0(path2proj,'FCWC-data-processing/R_code/aquatroll_processing.R'))
+
+### load shapefile for plotting
+setwd(paste0(path2proj,'FCWC-data-processing/shapefile'))
+world <- readOGR('ne_10m_admin_0_countries.shp')
 
 ### find and names files for input
 setwd(paste0(path2proj,'FCWC-data-processing/data/2019-10-15'))
@@ -50,26 +56,60 @@ output <- output[!is.na(output$date_utc),]
 output$depth_m <- -(output$depth_m)
 
 ### plot out locations to see where they are
-plot(output$lon_dd,output$lat_dd,asp=1,xlim=c(-82.7,-82),ylim=c(26.4,26.9))
-plot(coast,add=T,fill='gray80')
+plot(output$lon_dd,output$lat_dd,
+     xlim=c(-82.7,-82),ylim=c(26,27),
+     asp=1,bg='orange',pch=21,las=1,
+     xlab='Longitude',ylab='Latitude')
+plot(world, add=T, col='gray80')
+grid()
+
+
 ### finding bottom
 bots <- bottom_finder(output$lon_dd,output$depth_m)
 ### resolution for interpolation
 z_res <- 100
 lon_res <- z_res*3
 ### interpolation
-temp_int <- interp(output$lon_dd,output$depth_m,output$temperature,
-                   xo=seq(min(output$lon_dd),max(output$lon_dd),length=lon_res),
-                   yo=seq(min(output$depth_m),max(output$depth_m),length=z_res))
-sal_int <- interp(output$lon_dd,output$depth_m,output$salinity,
-                  xo=seq(min(output$lon_dd),max(output$lon_dd),length=lon_res),
-                  yo=seq(min(output$depth_m),max(output$depth_m),length=z_res))
-chl_int <- interp(output$lon_dd,output$depth_m,output$chlorophyll,
-                  xo=seq(min(output$lon_dd),max(output$lon_dd),length=lon_res),
-                  yo=seq(min(output$depth_m),max(output$depth_m),length=z_res))
-do_int <- interp(output$lon_dd,output$depth_m,output$rdo,
-                 xo=seq(min(output$lon_dd),max(output$lon_dd),length=lon_res),
-                 yo=seq(min(output$depth_m),max(output$depth_m),length=z_res))
+### temperature
+temp_int <- interp(output$lon_dd,
+                   output$depth_m,
+                   output$temperature,
+                   xo=seq(min(output$lon_dd),
+                          max(output$lon_dd),
+                          length=lon_res),
+                   yo=seq(min(output$depth_m),
+                          max(output$depth_m),
+                          length=z_res))
+### salinity
+sal_int <- interp(output$lon_dd,
+                  output$depth_m,
+                  output$salinity,
+                  xo=seq(min(output$lon_dd),
+                         max(output$lon_dd),
+                         length=lon_res),
+                  yo=seq(min(output$depth_m),
+                         max(output$depth_m),
+                         length=z_res))
+### chlorophyll
+chl_int <- interp(output$lon_dd,
+                  output$depth_m,
+                  output$chlorophyll,
+                  xo=seq(min(output$lon_dd),
+                         max(output$lon_dd),
+                         length=lon_res),
+                  yo=seq(min(output$depth_m),
+                         max(output$depth_m),
+                         length=z_res))
+### disslved oxygen
+do_int <- interp(output$lon_dd,
+                 output$depth_m,
+                 output$rdo,
+                 xo=seq(min(output$lon_dd),
+                        max(output$lon_dd),
+                        length=lon_res),
+                 yo=seq(min(output$depth_m),
+                        max(output$depth_m),
+                        length=z_res))
 
 
 ### breaks and colors
@@ -97,40 +137,68 @@ imagePlot(temp_int$x,
           temp_int$y,
           temp_int$z,
           breaks=t_breaks,
-          col=t_cols)
+          col=t_cols,
+          xlab='Longitude',ylab='Depth (m)',las=1)
+mtext(expression(paste('Temperature (',degree,'C)')),adj=1)
+contour(temp_int$x,
+          temp_int$y,
+          temp_int$z,
+          levels=t_breaks,
+        add=T)
 polygon(bots$lon,
         bots$z,
         col='wheat4')
-points(output$lon_dd,output$depth_m,pch=20,cex=.5,col='green')
+points(output$lon_dd,output$depth_m,pch=20,cex=.5,col='gray80')
 
 imagePlot(sal_int$x,
           sal_int$y,
           sal_int$z,
           breaks=s_breaks,
-          col=s_cols)
+          col=s_cols,
+          xlab='Longitude',ylab='Depth (m)',las=1)
+mtext('Salinity (ppt)',adj=1)
+contour(sal_int$x,
+        sal_int$y,
+        sal_int$z,
+        levels=s_breaks,
+        add=T)
 polygon(bots$lon,
         bots$z,
         col='wheat4')
-points(output$lon_dd,output$depth_m,pch=20,cex=.5,col='green')
+points(output$lon_dd,output$depth_m,pch=20,cex=.5,col='gray80')
 
 imagePlot(chl_int$x,
           chl_int$y,
           chl_int$z,
           breaks=c_breaks,
-          col=c_cols)
+          col=c_cols,
+          xlab='Longitude',ylab='Depth (m)',las=1)
+mtext(expression(paste('Chlorophyll (',mu,'g l'^-1,')')),adj=1)
+contour(chl_int$x,
+        chl_int$y,
+        chl_int$z,
+        levels=c_breaks,
+        add=T)
 polygon(bots$lon,
         bots$z,
         col='wheat4')
-points(output$lon_dd,output$depth_m,pch=20,cex=.5,col='green')
+points(output$lon_dd,output$depth_m,pch=20,cex=.5,col='gray80')
 
 imagePlot(do_int$x,
           do_int$y,
           do_int$z,
           breaks=o_breaks,
-          col=o_cols)
+          col=o_cols,
+          xlab='Longitude',ylab='Depth (m)',las=1)
+mtext(expression(paste('Dissolved Oxygen (mg l'^-1,')')),adj=1)
+contour(do_int$x,
+        do_int$y,
+        do_int$z,
+        levels=o_breaks,
+        add=T)
 polygon(bots$lon,
         bots$z,
         col='wheat4')
-points(output$lon_dd,output$depth_m,pch=20,cex=.5,col='green')
+points(output$lon_dd,output$depth_m,pch=20,cex=.5,col='gray80')
 
 
