@@ -1,14 +1,14 @@
-2021-09-27  Brendan Turley
+2021-09-30  Brendan Turley
 - aquatroll_processing.R: interp_aquatroll function option save_plot
 
-2021-09-27  Brendan Turley
+2021-09-29  Brendan Turley
 - aquatroll_processing.R: interp_aquatroll now saves current working directory so it returns to htm locations after saving profile plots in different directory
 
 2021-09-27  Brendan Turley
 - aquatroll_processing.R: fix interp_aquatroll so it does not look for profile index and now includes lat/lon as output; update bottom_finder funciton so output can be used as a polygon without extra processing
 - FCWC_vignette.R: updated wored example to produce interpolated profiles (with colorbars!)
 
-2021-09-23  Brendan Turley
+2021-09-24  Brendan Turley
 - aquatroll_processing.R: update data_extract_aquatroll to export numeric columns because direct pipe into interp_aquatroll was causing errors; update interp_aquatroll to no longer recognize profile index column, which I added in a processing step outside these defined functions
 - added FCWC_vignette.R to show example processing pipeline; this is a work in progress
 
@@ -21,14 +21,14 @@
 2021-09-20  Brendan Turley
 - aquatroll_processing.R: removal of depreciated and redundant functions dropout_aquatroll, process_htm, summary_aquatroll, summary_htm
 
-2021/07/30  Brendan Turley
+2021-07-30  Brendan Turley
 - aquatroll_processing.R:fixed error coding characters for spltstr function; added bottom finder function and breaks function
 
-2021/08/02  Brendan Turley
+2021-08-02  Brendan Turley
 - aquatroll_processing.R:added new smoothing, depth binning, and interpolation method
 
-2021/08/11  Brendan Turley
+2021-08-11  Brendan Turley
 - aquatroll_processing.R:added conversion from depth in feet to meters; reorder columns to be consistent
 
-2021/08/13  Brendan Turley
+2021-08-13  Brendan Turley
 - aquatroll_processing.R:created new functions to process either csv or htms
