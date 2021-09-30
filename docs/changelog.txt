@@ -1,4 +1,7 @@
 2021-09-27  Brendan Turley
+- aquatroll_processing.R: interp_aquatroll function option save_plot
+
+2021-09-27  Brendan Turley
 - aquatroll_processing.R: interp_aquatroll now saves current working directory so it returns to htm locations after saving profile plots in different directory
 
 2021-09-27  Brendan Turley

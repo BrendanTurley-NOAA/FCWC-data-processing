@@ -280,7 +280,7 @@ interp_aquatroll <- function (input, # input file is the output data.frame from 
                               spar = .6, # smoothing parameter for smooth.spline before interpolation; values 0:1 with higher values are more smooth
                               resolution = 1, # resolution in meters of the interpolation
                               set_wd=NA, # set the working directory to save csv and plots; if NA, it reverts to the current working directory
-                              plot=T # TRUE to plot interpolated data for visual inspection
+                              save_plot=T # TRUE to plot interpolated data for visual inspection
 )
 {
   ### save current working directory
@@ -378,7 +378,7 @@ interp_aquatroll <- function (input, # input file is the output data.frame from 
   z_cuts <- cut(input$Depth,breaks=breaks+.5)
   levels(z_cuts) <- breaks[2:length(breaks)]
   ### for plotting
-  if(plot){
+  if(save_plot){
     if(is.na(set_wd)){
       # setwd(paste(getwd()))
       setwd(paste(wd_now))
@@ -415,7 +415,7 @@ interp_aquatroll <- function (input, # input file is the output data.frame from 
       mtext(input[1,grep('Date',columns)],adj=0)
     }
   }
-  if(plot){
+  if(save_plot){
     dev.off()
   }
   ### return to original working directory
