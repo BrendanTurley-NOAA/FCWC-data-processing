@@ -22,13 +22,13 @@
 - aquatroll_processing.R: removal of depreciated and redundant functions dropout_aquatroll, process_htm, summary_aquatroll, summary_htm
 
 2021-07-30  Brendan Turley
-- aquatroll_processing.R:fixed error coding characters for spltstr function; added bottom finder function and breaks function
+- aquatroll_processing.R: fixed error coding characters for spltstr function; added bottom finder function and breaks function
 
 2021-08-02  Brendan Turley
-- aquatroll_processing.R:added new smoothing, depth binning, and interpolation method
+- aquatroll_processing.R: added new smoothing, depth binning, and interpolation method
 
 2021-08-11  Brendan Turley
-- aquatroll_processing.R:added conversion from depth in feet to meters; reorder columns to be consistent
+- aquatroll_processing.R: added conversion from depth in feet to meters; reorder columns to be consistent
 
 2021-08-13  Brendan Turley
-- aquatroll_processing.R:created new functions to process either csv or htms
+- aquatroll_processing.R: created new functions to process either csv or htms
