@@ -100,7 +100,7 @@ chl_int <- interp(output$lon_dd,
                   yo=seq(min(output$depth_m),
                          max(output$depth_m),
                          length=z_res))
-### disslved oxygen
+### dissolved oxygen
 do_int <- interp(output$lon_dd,
                  output$depth_m,
                  output$rdo,
@@ -140,6 +140,7 @@ png(paste('FCWC_',paste(year(output$date_utc[1]),
           '.png',sep=''),
     width = 7.5, height = 9.5, units = 'in', res = 300)
 par(mfrow=c(3,2),mar=c(5,5,2,2))
+### temperature
 imagePlot(temp_int$x,
           temp_int$y,
           temp_int$z,
@@ -159,6 +160,7 @@ points(output$lon_dd,output$depth_m,pch=20,cex=.5,col='gray80')
 mtext(expression(paste('Longitude (',degree,'W)')),1,line=3)
 mtext('Depth (m)',2,line=3)
 
+### salinity
 imagePlot(sal_int$x,
           sal_int$y,
           sal_int$z,
@@ -178,6 +180,7 @@ points(output$lon_dd,output$depth_m,pch=20,cex=.5,col='gray80')
 mtext(expression(paste('Longitude (',degree,'W)')),1,line=3)
 mtext('Depth (m)',2,line=3)
 
+### chlorophyll
 imagePlot(chl_int$x,
           chl_int$y,
           chl_int$z,
@@ -197,6 +200,7 @@ points(output$lon_dd,output$depth_m,pch=20,cex=.5,col='gray80')
 mtext(expression(paste('Longitude (',degree,'W)')),1,line=3)
 mtext('Depth (m)',2,line=3)
 
+### dissolved oxygen
 imagePlot(do_int$x,
           do_int$y,
           do_int$z,
@@ -215,7 +219,6 @@ polygon(bots$lon,
 points(output$lon_dd,output$depth_m,pch=20,cex=.5,col='gray80')
 mtext(expression(paste('Longitude (',degree,'W)')),1,line=3)
 mtext('Depth (m)',2,line=3)
-
 
 ### plot out locations to see where they are
 plot(output$lon_dd,output$lat_dd,
