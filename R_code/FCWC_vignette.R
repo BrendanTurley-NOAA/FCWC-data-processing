@@ -18,7 +18,33 @@ world <- readOGR('ne_10m_admin_0_countries.shp')
 ### find and names files for input
 setwd(paste0(path2proj,'FCWC-data-processing/data/2019-10-15'))
 files <- list.files()
-ind <- grep('htm',files) ### only call the htm files
+
+### let's open one file and look at it
+data <- readLines(files[1])
+head(data)
+### hmmm, htm files are hard to interpret if you are a human
+
+### ok, the basic file format has several lines of metadata at the top then the data is stored in tabular format below
+### the data_extract_aquatroll function strips the metadata off and returns the raw data in a data.frame
+data <- data_extract_aquatroll(files[1])
+head(data)
+### thats more like it
+
+### we can process the raw data into interpolated bins and plot it out to see the results
+### we are not going to save the plots for now
+data_int <- interp_aquatroll(data,save_plot=F)
+head(data_int)
+### great, it all looks pretty good
+
+### to see the metadata and some other data summary
+data_summary <- summary_aquatroll(files[1])
+data_summary
+### there will only be one line per htm file
+
+
+### now if we want to process multiple files we can call all this together in a for loop
+### only call the htm files
+ind <- grep('htm',files) 
 files <- files[ind]
 
 ### empty dataframes for storing output
@@ -64,7 +90,7 @@ output$date_utc <- ymd_hms(output$date_utc)
 output$depth_m <- -(output$depth_m)
 
 
-### finding bottom
+### define the bottom for plotting
 bots <- bottom_finder(output$lon_dd,output$depth_m)
 ### resolution for interpolation
 z_res <- 100
