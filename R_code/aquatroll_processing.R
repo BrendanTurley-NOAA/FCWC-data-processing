@@ -279,8 +279,8 @@ interp_aquatroll <- function (input, # input file is the output data.frame from 
                               z_min = 2, # depth cutoff to start interpolation, typically there is a soak period at the surface where readings are unreliable
                               spar = .6, # smoothing parameter for smooth.spline before interpolation; values 0:1 with higher values are more smooth
                               resolution = 1, # resolution in meters of the interpolation
-                              set_wd=NA, # set the working directory to save csv and plots; if NA, it reverts to the current working directory
-                              save_plot=T # TRUE to plot interpolated data for visual inspection
+                              set_wd = NA, # set the working directory to save csv and plots; if NA, it reverts to the current working directory
+                              save_plot = T # TRUE to plot interpolated data for visual inspection
 )
 {
   ### save current working directory
@@ -431,16 +431,16 @@ interp_aquatroll <- function (input, # input file is the output data.frame from 
 ### <this function is soon to be depreciated> ###
 # The output is a list containing the raw data and a linear interpolation of the data to plot
 process_aquatroll <- function(input, # htm or csv file that contains the raw aquatroll output
-                              lat=NA, # supply a latitude if you know it is missing
-                              lon=NA, # supply a longitude if you know it is missing
-                              resolution=1, # resolution in meters of the linear interpolation
-                              z_min=2, # depth cutoff to start interpolation, typically there is a soak period at the surface where readings are unreliable
-                              span=5, # span to calculate centered moving average
-                              write_csv=T, # TRUE to save output as two csv files: the interpolated data and the raw data 
-                              set_wd=NA, # set the working directory to save csv and plots; if NA, it reverts to the current working directory
-                              plot=T # TRUE to plot interpolated data for visual inspection
-                              )
-  {
+                              lat = NA, # supply a latitude if you know it is missing
+                              lon = NA, # supply a longitude if you know it is missing
+                              resolution = 1, # resolution in meters of the linear interpolation
+                              z_min = 2, # depth cutoff to start interpolation, typically there is a soak period at the surface where readings are unreliable
+                              span = 5, # span to calculate centered moving average
+                              write_csv = T, # TRUE to save output as two csv files: the interpolated data and the raw data 
+                              set_wd = NA, # set the working directory to save csv and plots; if NA, it reverts to the current working directory
+                              plot = T # TRUE to plot interpolated data for visual inspection
+)
+{
   if(file_ext(input)!='csv' & file_ext(input)!='htm'){
     warning(paste('\n\n File format needs to be csv or htm! \n\n'),
             immediate. = T)
@@ -686,8 +686,8 @@ process_aquatroll <- function(input, # htm or csv file that contains the raw aqu
 ### better method would be to find bathymetry from gridded bathymetry like ETOPO1 or CRM
 bottom_finder <- function(longitudes, # vector of longitudes
                           depths # vector of depths corresponding to the longitudes
-                          )
-  {
+)
+{
   unique_lon <- unique(longitudes)
   bottom <- matrix(NA,length(unique_lon),2)
   for(i in 1:length(unique_lon)){
@@ -706,8 +706,8 @@ bottom_finder <- function(longitudes, # vector of longitudes
 breaks <- function(x, # vector of values to calculate breaks
                    int, # number: increment of the sequence
                    decimal = F # decimal is good for chlorophyll or other values logarithmic space
-                   )
-  {
+)
+{
   r_range <- range(x,na.rm=T)
   if(decimal){ ### decimal is good for chlorophyll or other values logarithmic space
     seqs <- seq(round(r_range[1],2),round(r_range[2],2),by=int)
@@ -723,8 +723,8 @@ running  <- function (x, # x vector used to calculate slope and mean
                       y, # y vector used to calculate slope and mean
                       r, # span to calculate the running parameter
                       b # indicate whether to calculate the running slope (1), mean (2), or both (3)
-                      )
-  {
+)
+{
   ind <- floor(r/2)
   y.t <- rep(NA,length(y))
   y.t4 <- rep(NA,length(y))
