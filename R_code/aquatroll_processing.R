@@ -33,6 +33,36 @@ if(as.numeric(r$major)<4 & as.numeric(r$minor)<1){
 rm(r)
 
 
+
+###--------- data_extract_aquatroll
+### just a list of standard parameters reported in aquatroll htm files
+aquatroll_fields <- function(){
+  c("Date Time",
+    "Salinity (ppt)",
+    "Temperature (°C) AT",
+    "Depth",
+    "Pressure (psi)",
+    "Actual Conductivity (µS/cm)",
+    "Specific Conductivity (µS/cm)",
+    "Total Dissolved Solids (ppt)",
+    "Resistivity (Ω⋅cm)",
+    "Density (g/cm³)",
+    "Barometric Pressure (mm Hg)",
+    "RDO Concentration (mg/L)",
+    "RDO Saturation (%Sat)",
+    "Oxygen Partial Pressure (Torr)",
+    "Chlorophyll-a Fluorescence (RFU)",
+    "Chlorophyll-a Concentration (µg/L)",
+    "Battery Capacity (%)",
+    "External Voltage (V)",
+    "Barometric Pressure (mbar)",
+    "Temperature (°C) HH",
+    "Latitude (°)",
+    "Longitude (°)",
+    "Marked")
+}
+
+
 ###--------- data_extract_aquatroll
 data_extract_aquatroll <- function(input # htm or csv file that contains the raw aquatroll output
 )

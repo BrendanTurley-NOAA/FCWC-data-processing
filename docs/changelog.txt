@@ -1,3 +1,6 @@
+2021-10-01  Brendan Turley
+- aquatroll_processing.R: added aquatroll_fields helper function that lists standard aquatroll output parameters
+
 2021-09-30  Brendan Turley
 - aquatroll_processing.R: interp_aquatroll function option save_plot
 
