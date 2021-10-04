@@ -27,6 +27,8 @@ The overall objective of the code is produce a visual data product that can be d
 
 To do 
 
+* add QA/QC processing functions
+* make interp_aquatroll function flexible enough to skip over missing data (e.g., DO dropout)
 * make vignette on how to use functions with example data using markdown
 * make shiny app to display data https://shiny.rstudio.com/
 * update .md using: https://r4ds.had.co.nz/r-markdown-formats.html or https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet or https://rmarkdown.rstudio.com/ examples
