@@ -5,8 +5,8 @@ The code in this repository are used to process data collected by an [In-Situ Aq
 The original files are directly uploaded to GoogleDrive by the [VuSitu App](https://in-situ.com/us/vusitu-app) as an htm. The R functions in this repository are designed to perform a few different tasks: 
 
 * **aquatroll_fields** a helper function that just lists the standard parameters reported in aquatroll htm files
-* **data_extract_aquatroll** takes an .htm or .csv and extract all the raw data and put it into a data.frame
 * **summary_aquatroll** takes an .htm or .csv and returns a summary data.frame of the data including if parameters were missing from the input file or if there was sensor drop out, both of which has been an issue.
+* **data_extract_aquatroll** takes an .htm or .csv and extract all the raw data and put it into a data.frame
 * **interp_aquatroll** takes the data.frame output of **data_extract_aquatroll** and smooths and interpolates selected parameters for downstream visualization
 * **bottom_finder** is useful for plotting profiles to find bottom for each profile
 * **breaks** makes handy breaks for color palettes
