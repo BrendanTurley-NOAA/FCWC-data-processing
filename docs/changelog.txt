@@ -1,3 +1,6 @@
+2021-10-04  Brendan Turley
+- aquatroll_processing.R: remove process_aquatroll function; it was redundant with newer functions performing the same operations more efficiently
+
 2021-10-01  Brendan Turley
 - aquatroll_processing.R: added aquatroll_fields helper function that lists standard aquatroll output parameters
 
