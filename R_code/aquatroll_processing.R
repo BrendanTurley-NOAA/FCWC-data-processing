@@ -338,8 +338,9 @@ interp_aquatroll <- function (input, # input file is the output data.frame from 
   columns <- names(input)
   
   ### chlorophyll dropout
-  if(sum(is.na(input[,grep('chlorophyll',columns,ignore.case = T)[1]]))==nrow(input)){
-    input[,ind[1]] <- input[,ind[2]]*10
+  if(sum(is.na(input[,grep('chlorophyll',columns,ignore.case = T)[2]]))==nrow(input)){
+    ind <- grep('chlorophyll',columns,ignore.case = T)
+    input[,ind[2]] <- input[,ind[1]]*10
   }
   
   ### salinity dropout
@@ -400,60 +401,61 @@ interp_aquatroll <- function (input, # input file is the output data.frame from 
     input <- input[row_beg:nrow(input),]
   }
   if(nrow(input)<3){
-    stop('\n\n not enough data \n\n')
-  }
-  
-  ### interpolate data to smooth
-  breaks <- seq(0,ceiling(max(input$Depth)),resolution)
-  z_cuts <- cut(input$Depth,breaks=breaks+.5)
-  levels(z_cuts) <- breaks[2:length(breaks)]
-  ### for plotting
-  if(save_plot){
-    if(is.na(set_wd)){
-      # setwd(paste(getwd()))
-      setwd(paste(wd_now))
-    } else {
-      setwd(paste(set_wd))
+    warning('\n\n not enough data \n\n')
+    return(NULL)
+  } else {
+    ### interpolate data to smooth
+    breaks <- seq(0,ceiling(max(input$Depth)),resolution)
+    z_cuts <- cut(input$Depth,breaks=breaks+.5)
+    levels(z_cuts) <- breaks[2:length(breaks)]
+    ### for plotting
+    if(save_plot){
+      if(is.na(set_wd)){
+        # setwd(paste(getwd()))
+        setwd(paste(wd_now))
+      } else {
+        setwd(paste(set_wd))
+      }
+      png(paste(timestamp,'plots.png',sep='_'), height = 10, width = 7, units = 'in', res=300)
     }
-    png(paste(timestamp,'plots.png',sep='_'), height = 10, width = 7, units = 'in', res=300)
-  }
-  cols <- c(2,'purple',3,4)
-  par(mfrow=c(2,2))
-  
-  ### empty data.frame to store output
-  temp_out <- data.frame(matrix(NA,length(breaks),length(parms)+4))
-  temp_out[,1] <- as.character(input[1,1])
-  temp_out[,2] <- lon_avg
-  temp_out[,3] <- lat_avg
-  temp_out[,4] <- breaks
-  for(i in 1:length(parms)){
-    ind <- grep(parms[i],names(input),ignore.case = T)
-    # temp_rm <- smooth.spline(input$Depth,input[,ind],df=nrow(input)/3)
-    temp_rm <- smooth.spline(input$Depth,input[,ind],spar=spar)
-    temp_agg <- aggregate(temp_rm$y,by=list(z_cuts),mean)
-    # temp_agg <- aggregate(input[,ind],by=list(z_cuts),mean)
-    names(temp_agg) <- c('depths','values')
-    temp_agg$depths <- as.numeric(temp_agg$depths)
-    temp_int <- approx(temp_agg$depths,temp_agg$values,xout=breaks,ties=mean)
-    ### save output 
-    temp_out[,i+4] <- temp_int$y
-    ### plot
-    plot(input[,ind],-input$Depth,col=cols[i],lwd=2,typ='l',las=1,xlab='',ylab='Depth (m)')
-    mtext(names(input)[ind],1,line=2)
-    points(temp_int$y,-temp_int$x,lwd=1.5)
-    if(i==1){
-      mtext(input[1,grep('Date',columns)],adj=0)
+    cols <- c(2,'purple',3,4)
+    par(mfrow=c(2,2))
+    
+    ### empty data.frame to store output
+    temp_out <- data.frame(matrix(NA,length(breaks),length(parms)+4))
+    temp_out[,1] <- as.character(input[1,1])
+    temp_out[,2] <- lon_avg
+    temp_out[,3] <- lat_avg
+    temp_out[,4] <- breaks
+    for(i in 1:length(parms)){
+      ind <- grep(parms[i],names(input),ignore.case = T)
+      # temp_rm <- smooth.spline(input$Depth,input[,ind],df=nrow(input)/3)
+      temp_rm <- smooth.spline(input$Depth,input[,ind],spar=spar)
+      temp_agg <- aggregate(temp_rm$y,by=list(z_cuts),mean)
+      # temp_agg <- aggregate(input[,ind],by=list(z_cuts),mean)
+      names(temp_agg) <- c('depths','values')
+      temp_agg$depths <- as.numeric(temp_agg$depths)
+      temp_int <- approx(temp_agg$depths,temp_agg$values,xout=breaks,ties=mean)
+      ### save output 
+      temp_out[,i+4] <- temp_int$y
+      ### plot
+      plot(input[,ind],-input$Depth,col=cols[i],lwd=2,typ='l',las=1,xlab='',ylab='Depth (m)')
+      mtext(names(input)[ind],1,line=2)
+      points(temp_int$y,-temp_int$x,lwd=1.5)
+      if(i==1){
+        mtext(input[1,grep('Date',columns)],adj=0)
+      }
     }
+    if(save_plot){
+      dev.off()
+    }
+    ### return to original working directory
+    setwd(paste(wd_now))
+    ### rename columns for output
+    names(temp_out) <- c('date_utc','lon_dd','lat_dd','depth_m',parms)
+    temp_out <- temp_out[which(!is.na(temp_out$temperature)),]
+    return(temp_out)
   }
-  if(save_plot){
-    dev.off()
-  }
-  ### return to original working directory
-  setwd(paste(wd_now))
-  ### rename columns for output
-  names(temp_out) <- c('date_utc','lon_dd','lat_dd','depth_m',parms)
-  temp_out <- temp_out[which(!is.na(temp_out$temperature)),]
-  return(temp_out)
 }
 
 

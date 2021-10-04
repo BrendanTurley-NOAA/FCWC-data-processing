@@ -1,5 +1,5 @@
 2021-10-04  Brendan Turley
-- aquatroll_processing.R: remove process_aquatroll function; it was redundant with newer functions performing the same operations more efficiently
+- aquatroll_processing.R: remove process_aquatroll function; it was redundant with newer functions performing the same operations more efficiently; fixed chlorophyll dropout replacement in interp_aquatroll function
 - process_aquatroll.R: depreciated function moved to new folder
 
 2021-10-01  Brendan Turley
