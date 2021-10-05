@@ -1,3 +1,6 @@
+2021-10-05  Brendan Turley
+- aquatroll_processing.R: interp_aquatroll function changed to deal with NAs during smooth, bin, and interpolation process because smooth.spline functino does not accept NAs; future addition possible to use upcast data if downcast is bad/unacceptable
+
 2021-10-04  Brendan Turley
 - aquatroll_processing.R: remove process_aquatroll function; it was redundant with newer functions performing the same operations more efficiently; fixed chlorophyll dropout replacement in interp_aquatroll function; changed 'too few data' stop to a warning and added else statement to prevent full stop
 - process_aquatroll.R: depreciated function moved to new folder

@@ -361,12 +361,12 @@ interp_aquatroll <- function (input, # input file is the output data.frame from 
   ind_depth <- grep('Depth',columns)
   ind_all <- c(ind_date,ind_lat,ind_lon,ind_depth)
   
-  for(i in 1:length(parms)){
-    ind <- grep(parms[i],names(input),ignore.case = T)
-    if(parms[i]=='temperature'){
+  for(i_par in 1:length(parms)){
+    ind <- grep(parms[i_par],names(input),ignore.case = T)
+    if(parms[i_par]=='temperature'){
       ind <- ind[grep('AT',names(input)[ind])]
     }
-    if(parms[i]=='chlorophyll' | parms[i]=='rdo'){
+    if(parms[i_par]=='chlorophyll' | parms[i_par]=='rdo'){
       ind <- ind[grep('Concentration',names(input)[ind])]
     }
     ind_all <- c(ind_all,ind)
@@ -400,14 +400,40 @@ interp_aquatroll <- function (input, # input file is the output data.frame from 
     row_beg <- max(ind_lt2m) - 1
     input <- input[row_beg:nrow(input),]
   }
-  if(nrow(input)<3){
+  
+  # #### experimental
+  # ###--------> future improvment: to retain upcast and use if downcast is unacceptable or merge up and downcast
+  # # filter for downcast (not up)
+  # row_end <- which.max(input$Depth)
+  # downcast <- input[1:row_end,]
+  # upcast <- input[row_end:nrow(input),]
+  # 
+  # # filter out surface entries (< 2 m), except row immediately before
+  # ind_lt2m <- which(downcast$Depth < z_min)
+  # if (length(ind_lt2m) > 0){
+  #   row_beg <- max(ind_lt2m) - 1
+  #   downcast <- downcast[row_beg:nrow(downcast),]
+  # }
+  # 
+  # if(nrow(downcast)>3){
+  #   inputs <- downcast
+  # } else if (nrow(upcast)>3){
+  #   inputs <- upcast
+  # } else {
+  #   inputs <- downcast
+  # }
+  # ### experimental
+  
+  ### smooth, bin, and plot
+  if(nrow(input)<3 | max(input$Depth)<=4){
     warning('\n\n not enough data \n\n')
     return(NULL)
   } else {
     ### interpolate data to smooth
     breaks <- seq(0,ceiling(max(input$Depth)),resolution)
-    z_cuts <- cut(input$Depth,breaks=breaks+.5)
-    levels(z_cuts) <- breaks[2:length(breaks)]
+    # z_cuts <- cut(input$Depth,breaks=breaks+.5)
+    # levels(z_cuts) <- breaks[2:length(breaks)]
+    
     ### for plotting
     if(save_plot){
       if(is.na(set_wd)){
@@ -427,23 +453,43 @@ interp_aquatroll <- function (input, # input file is the output data.frame from 
     temp_out[,2] <- lon_avg
     temp_out[,3] <- lat_avg
     temp_out[,4] <- breaks
-    for(i in 1:length(parms)){
-      ind <- grep(parms[i],names(input),ignore.case = T)
-      # temp_rm <- smooth.spline(input$Depth,input[,ind],df=nrow(input)/3)
-      temp_rm <- smooth.spline(input$Depth,input[,ind],spar=spar)
-      temp_agg <- aggregate(temp_rm$y,by=list(z_cuts),mean)
-      # temp_agg <- aggregate(input[,ind],by=list(z_cuts),mean)
-      names(temp_agg) <- c('depths','values')
-      temp_agg$depths <- as.numeric(temp_agg$depths)
-      temp_int <- approx(temp_agg$depths,temp_agg$values,xout=breaks,ties=mean)
+    for(i_par in 1:length(parms)){
+      er <- F ### revert error code for ploting
+      ind <- grep(parms[i_par],names(input),ignore.case = T)
+      
+      ### dealing with NAs because smooth.spline does not accept NAs
+      if(all(is.na(input[,ind]))){ ### if all NA, then add -999 and error code for ploting
+        temp_int <- data.frame(x=breaks,y=-999)
+        input[,ind] <- -999
+        er <- T
+      } else if(any(is.na(input[,ind])) & !all(is.na(input[,ind]))){ ### if some NAs, attempt imputation
+        na_impute <- approx(input$Depth,input[,ind],input$Depth[which(is.na(input[,ind]))])
+        input[which(is.na(input[,ind])),ind] <- na_impute$y
+      }
+      if(all(!is.na(input[,ind]))){ ### if no NAs, smooth and bin data
+        temp_rm <- smooth.spline(input$Depth,input[,ind],spar=spar)
+        z_cuts <- cut(temp_rm$x,breaks=breaks+.5)
+        levels(z_cuts) <- breaks[2:length(breaks)]
+        temp_agg <- aggregate(temp_rm$y,by=list(z_cuts),mean)
+        # temp_agg <- aggregate(input[,ind],by=list(z_cuts),mean) ### jsut bin instead of smooth; depreciated
+        names(temp_agg) <- c('depths','values')
+        temp_agg$depths <- as.numeric(temp_agg$depths)
+        temp_int <- approx(temp_agg$depths,temp_agg$values,xout=breaks,ties=mean)
+      } else { ### if still NAs, then add -999 and error code for ploting
+        temp_int <- data.frame(x=breaks,y=-999)
+        er <- T
+      }
       ### save output 
-      temp_out[,i+4] <- temp_int$y
+      temp_out[,i_par+4] <- temp_int$y
       ### plot
-      plot(input[,ind],-input$Depth,col=cols[i],lwd=2,typ='l',las=1,xlab='',ylab='Depth (m)')
+      plot(input[,ind],-input$Depth,col=cols[i_par],lwd=2,typ='l',las=1,xlab='',ylab='Depth (m)')
       mtext(names(input)[ind],1,line=2)
       points(temp_int$y,-temp_int$x,lwd=1.5)
-      if(i==1){
+      if(i_par==1){
         mtext(input[1,grep('Date',columns)],adj=0)
+      }
+      if(er){ ### plot if NAs error and no smoothing/binning
+        mtext('NAs approx error',col='red')
       }
     }
     if(save_plot){
