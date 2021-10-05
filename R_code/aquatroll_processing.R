@@ -34,7 +34,7 @@ rm(r)
 
 
 
-###--------- data_extract_aquatroll
+###--------- aquatroll_fields
 ### just a list of standard parameters reported in aquatroll htm files
 aquatroll_fields <- function(){
   c("Date Time",
@@ -60,109 +60,6 @@ aquatroll_fields <- function(){
     "Latitude (°)",
     "Longitude (°)",
     "Marked")
-}
-
-
-###--------- data_extract_aquatroll
-data_extract_aquatroll <- function(input # htm or csv file that contains the raw aquatroll output
-)
-{
-  ### fields required for exporting raw data
-  flds_req <- c("Date Time",
-                "Salinity (ppt)",
-                "Temperature (°C) AT",
-                "Depth",
-                "Pressure (psi)",
-                "Actual Conductivity (µS/cm)",
-                "Specific Conductivity (µS/cm)",
-                "Total Dissolved Solids (ppt)",
-                "Resistivity (Ω⋅cm)",
-                "Density (g/cm³)",
-                "Barometric Pressure (mm Hg)",
-                "RDO Concentration (mg/L)",
-                "RDO Saturation (%Sat)",
-                "Oxygen Partial Pressure (Torr)",
-                "Chlorophyll-a Fluorescence (RFU)",
-                "Chlorophyll-a Concentration (µg/L)",
-                "Battery Capacity (%)",
-                "External Voltage (V)",
-                "Barometric Pressure (mbar)",
-                "Temperature (°C) HH",
-                "Latitude (°)",
-                "Longitude (°)",
-                "Marked")
-  
-  if(file_ext(input)!='csv' & file_ext(input)!='htm'){
-    warning(paste('\n\n File format needs to be csv or htm! \n\n'),
-            immediate. = T)
-  }
-  
-  if(file_ext(input)=='csv'){
-    D <- readLines(input)
-    # get header row of data
-    ind <- grep('Date Time',D)
-    # extract data
-    D <- read_csv(input,skip=ind-1,col_types = cols())
-    columns <- names(D)
-    H <- read.csv(input,header=F,nrows=ind-1)
-  }
-  if(file_ext(input)=='htm'){
-    H <- read_html(input) %>%
-      html_table(fill = T) %>%
-      .[[1]]
-    # get header row of data
-    row_d <- which(H[,1] == "Date Time")
-    columns <- H[row_d,]
-    # extract data
-    D <- H[(row_d+1):nrow(H),]
-    names(D) <- as.character(columns)
-  }
-  D <- as.data.frame(D)
-  H <- as.data.frame(H)
-  ### strip serial numbers
-  names(D) <- gsub(" \\([0-9]+\\)", "", columns)
-  ### Aquatroll serial number
-  row_h <- which(H[,1] == "Device Model = Aqua TROLL 600 Vented")
-  aquatroll_sn <- as.numeric(strsplit(as.character(H[row_h+1,1]),'=')[[1]][2])
-  ### Handheld serial number
-  row_sn <- grep('Device Model',H[,1])
-  row_h2 <- setdiff(row_sn,row_h)
-  handheld_sn <- ifelse(length(row_h2)>0,
-                        as.numeric(strsplit(as.character(H[row_h2+1,1]),'=')[[1]][2]),
-                        NA)
-  ### rename temperaures
-  ind_aquatroll <- grep(aquatroll_sn,columns)
-  ### Aquatroll temperature
-  ind_temp <- grep('Temperature',columns) %>%
-    intersect(ind_aquatroll)
-  names(D)[ind_temp] <- paste(names(D)[ind_temp],'AT')
-  ### Handheld temperature
-  ind_temp2 <- grep('Temperature',columns) %>%
-    setdiff(ind_aquatroll)
-  names(D)[ind_temp2] <- paste(names(D)[ind_temp2],'HH')
-  ### what are depth units?
-  depth_unit <- substr(names(D)[grep('Depth',names(D))],7,20)
-  ### Strip depth units
-  names(D)[grep('Depth',names(D))] <- 'Depth'
-  ### missing fields
-  flds_miss <- setdiff(flds_req, names(D))
-  
-  ### add missing columns
-  if(length(flds_miss)>0){
-    for(i in 1:length(flds_miss)){
-      D$add_1 <- NA
-      names(D)[ncol(D)] <- flds_miss[i]
-    }
-  }
-  ### reorder data
-  D <- D[,match(flds_req,names(D))]
-  ### add aquatroll serial number
-  D$aquatroll_sn <- aquatroll_sn
-  ### add depth units
-  D$depth_unit <- depth_unit
-  ### output
-  D[,c(2:22,24)] <- sapply(D[,c(2:22,24)],as.numeric)
-  return(D)
 }
 
 
@@ -300,6 +197,109 @@ summary_aquatroll <- function(input, # htm or csv file that contains the raw aqu
                     flds_miss=toString(flds_miss),
                     dropout=toString(dropout))
   return(out)
+}
+
+
+###--------- data_extract_aquatroll
+data_extract_aquatroll <- function(input # htm or csv file that contains the raw aquatroll output
+)
+{
+  ### fields required for exporting raw data
+  flds_req <- c("Date Time",
+                "Salinity (ppt)",
+                "Temperature (°C) AT",
+                "Depth",
+                "Pressure (psi)",
+                "Actual Conductivity (µS/cm)",
+                "Specific Conductivity (µS/cm)",
+                "Total Dissolved Solids (ppt)",
+                "Resistivity (Ω⋅cm)",
+                "Density (g/cm³)",
+                "Barometric Pressure (mm Hg)",
+                "RDO Concentration (mg/L)",
+                "RDO Saturation (%Sat)",
+                "Oxygen Partial Pressure (Torr)",
+                "Chlorophyll-a Fluorescence (RFU)",
+                "Chlorophyll-a Concentration (µg/L)",
+                "Battery Capacity (%)",
+                "External Voltage (V)",
+                "Barometric Pressure (mbar)",
+                "Temperature (°C) HH",
+                "Latitude (°)",
+                "Longitude (°)",
+                "Marked")
+  
+  if(file_ext(input)!='csv' & file_ext(input)!='htm'){
+    warning(paste('\n\n File format needs to be csv or htm! \n\n'),
+            immediate. = T)
+  }
+  
+  if(file_ext(input)=='csv'){
+    D <- readLines(input)
+    # get header row of data
+    ind <- grep('Date Time',D)
+    # extract data
+    D <- read_csv(input,skip=ind-1,col_types = cols())
+    columns <- names(D)
+    H <- read.csv(input,header=F,nrows=ind-1)
+  }
+  if(file_ext(input)=='htm'){
+    H <- read_html(input) %>%
+      html_table(fill = T) %>%
+      .[[1]]
+    # get header row of data
+    row_d <- which(H[,1] == "Date Time")
+    columns <- H[row_d,]
+    # extract data
+    D <- H[(row_d+1):nrow(H),]
+    names(D) <- as.character(columns)
+  }
+  D <- as.data.frame(D)
+  H <- as.data.frame(H)
+  ### strip serial numbers
+  names(D) <- gsub(" \\([0-9]+\\)", "", columns)
+  ### Aquatroll serial number
+  row_h <- which(H[,1] == "Device Model = Aqua TROLL 600 Vented")
+  aquatroll_sn <- as.numeric(strsplit(as.character(H[row_h+1,1]),'=')[[1]][2])
+  ### Handheld serial number
+  row_sn <- grep('Device Model',H[,1])
+  row_h2 <- setdiff(row_sn,row_h)
+  handheld_sn <- ifelse(length(row_h2)>0,
+                        as.numeric(strsplit(as.character(H[row_h2+1,1]),'=')[[1]][2]),
+                        NA)
+  ### rename temperaures
+  ind_aquatroll <- grep(aquatroll_sn,columns)
+  ### Aquatroll temperature
+  ind_temp <- grep('Temperature',columns) %>%
+    intersect(ind_aquatroll)
+  names(D)[ind_temp] <- paste(names(D)[ind_temp],'AT')
+  ### Handheld temperature
+  ind_temp2 <- grep('Temperature',columns) %>%
+    setdiff(ind_aquatroll)
+  names(D)[ind_temp2] <- paste(names(D)[ind_temp2],'HH')
+  ### what are depth units?
+  depth_unit <- substr(names(D)[grep('Depth',names(D))],7,20)
+  ### Strip depth units
+  names(D)[grep('Depth',names(D))] <- 'Depth'
+  ### missing fields
+  flds_miss <- setdiff(flds_req, names(D))
+  
+  ### add missing columns
+  if(length(flds_miss)>0){
+    for(i in 1:length(flds_miss)){
+      D$add_1 <- NA
+      names(D)[ncol(D)] <- flds_miss[i]
+    }
+  }
+  ### reorder data
+  D <- D[,match(flds_req,names(D))]
+  ### add aquatroll serial number
+  D$aquatroll_sn <- aquatroll_sn
+  ### add depth units
+  D$depth_unit <- depth_unit
+  ### output
+  D[,c(2:22,24)] <- sapply(D[,c(2:22,24)],as.numeric)
+  return(D)
 }
 
 
