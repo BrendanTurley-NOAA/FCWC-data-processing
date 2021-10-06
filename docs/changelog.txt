@@ -1,3 +1,6 @@
+2021-10-06  Brendan Turley
+- aquatroll_processing.R: data_extract_aquatroll includes input filename in output; interp_aquatroll plots filename for reference
+
 2021-10-05  Brendan Turley
 - aquatroll_processing.R: interp_aquatroll function changed to deal with NAs during smooth, bin, and interpolation process because smooth.spline functino does not accept NAs; future addition possible to use upcast data if downcast is bad/unacceptable
 

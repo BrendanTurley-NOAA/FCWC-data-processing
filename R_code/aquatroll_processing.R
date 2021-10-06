@@ -297,6 +297,8 @@ data_extract_aquatroll <- function(input # htm or csv file that contains the raw
   D$aquatroll_sn <- aquatroll_sn
   ### add depth units
   D$depth_unit <- depth_unit
+  # ### add input filename
+  D$input <- paste(input)
   ### output
   D[,c(2:22,24)] <- sapply(D[,c(2:22,24)],as.numeric)
   return(D)
@@ -359,7 +361,8 @@ interp_aquatroll <- function (input, # input file is the output data.frame from 
   ind_lat <- grep('Latitude',columns)
   ind_lon <- grep('Longitude',columns)
   ind_depth <- grep('Depth',columns)
-  ind_all <- c(ind_date,ind_lat,ind_lon,ind_depth)
+  ind_input <- grep('input',columns)
+  ind_all <- c(ind_date,ind_lat,ind_lon,ind_depth,ind_input)
   
   for(i_par in 1:length(parms)){
     ind <- grep(parms[i_par],names(input),ignore.case = T)
@@ -445,7 +448,7 @@ interp_aquatroll <- function (input, # input file is the output data.frame from 
       png(paste(timestamp,'plots.png',sep='_'), height = 10, width = 7, units = 'in', res=300)
     }
     cols <- c(2,'purple',3,4)
-    par(mfrow=c(2,2))
+    par(mfrow=c(2,2),mar=c(4,4,3,1))
     
     ### empty data.frame to store output
     temp_out <- data.frame(matrix(NA,length(breaks),length(parms)+4))
@@ -482,11 +485,13 @@ interp_aquatroll <- function (input, # input file is the output data.frame from 
       ### save output 
       temp_out[,i_par+4] <- temp_int$y
       ### plot
-      plot(input[,ind],-input$Depth,col=cols[i_par],lwd=2,typ='l',las=1,xlab='',ylab='Depth (m)')
-      mtext(names(input)[ind],1,line=2)
+      plot(input[,ind],-input$Depth,col=cols[i_par],lwd=2,typ='l',las=1,xlab='',ylab='')
+      mtext(names(input)[ind],1,line=2.5)
+      mtext('Depth (m)',2,line=2.5)
       points(temp_int$y,-temp_int$x,lwd=1.5)
       if(i_par==1){
         mtext(input[1,grep('Date',columns)],adj=0)
+        mtext(input[1,grep('input',columns)],line=1,adj=0)
       }
       if(er){ ### plot if NAs error and no smoothing/binning
         mtext('NAs approx error',col='red')
