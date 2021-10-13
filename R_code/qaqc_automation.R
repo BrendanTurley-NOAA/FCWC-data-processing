@@ -16,7 +16,7 @@
 # Test 1) Gap Test
 # Test 2) Syntax Test
 # Test 3) Location Test
-# Test 4) Gross Range Test
+# Test 4) Gross Range Test - find sensor ranges https://in-situ.com/pub/media/support/documents/AquaTROLL600_Spec-Sheet.pdf
 # Test 5) Climatological Test
 
 # Group 2
