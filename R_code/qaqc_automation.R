@@ -52,7 +52,14 @@ file_sum <- summary_aquatroll(input1)
 input <- data_extract_aquatroll(input1)
  
 
-flags <- data.frame(matrix(2,dim(input)[1],dim(input)[2]-4))
+flags <- matrix(2,dim(input)[1],dim(input)[2]-4)
+### global missing data test; if NA
+na_flag <- which(is.na(input))
+if(length(na_flag)>0){
+  flags[na_flag] <- 9
+}
+### column names
+flags <- data.frame(flags)
 names(flags) <- names(input)[1:(ncol(input)-4)]
 ###--------- Test 1) Timing/Gap Test
 ind <- grep('date',names(input),ignore.case=T)
@@ -71,15 +78,6 @@ flags[,ind_lon] <- 1
 flags[,ind_lat] <- 1
 lon <- input[,ind_lon]
 lat <- input[,ind_lat]
-### missing data
-lon_f1 <- which(is.na(lon))
-lat_f1 <- which(is.na(lat))
-if(length(lon_f1)>0){
-  flags[lon_f1,ind_lon] <- 9
-}
-if(length(lat_f1)>0){
-  flags[lat_f1,ind_lat] <- 9
-}
 ### impossible locations
 lon_f2 <- which(abs(lon)>180)
 lat_f2 <- which(abs(lat)>90)
@@ -92,19 +90,11 @@ if(length(lat_f2)>0){
 
 
 ###--------- Test 4) Gross Range Test
+### these values are from the Aquatroll specification manual: https://in-situ.com/us/aqua-troll-600-multiparameter-sonde
 # temperature
 ind <- grep('temperature',names(input),ignore.case=T)
 flags[,ind] <- 1
 temp <- input[,ind]
-### missing data
-t1_f1 <- which(is.na(temp[,1]))
-t2_f1 <- which(is.na(temp[,2]))
-if(length(t1_f1)>0){
-  flags[t1_f1,ind[1]] <- 9
-}
-if(length(t2_f1)>0){
-  flags[t2_f1,ind[2]] <- 9
-}
 ### out of range
 t1_f2 <- which(temp[,1]>50 | temp[,1]<(-5))
 t2_f2 <- which(temp[,2]>50 | temp[,2]<(-5))
@@ -118,15 +108,6 @@ if(length(t2_f2)>0){
 ind <- grep('conductivity',names(input),ignore.case=T)
 flags[,ind] <- 1
 cond <- input[,ind]
-### missing data
-c1_f1 <- which(is.na(cond[,1]))
-c2_f1 <- which(is.na(cond[,2]))
-if(length(c1_f1)>0){
-  flags[c1_f1,ind[1]] <- 9
-}
-if(length(c2_f1)>0){
-  flags[c2_f1,ind[2]] <- 9
-}
 ### out of range
 c1_f2 <- which(cond[,1]>350000 | cond[,1]<0)
 c2_f2 <- which(cond[,2]>350000 | cond[,2]<0)
@@ -140,11 +121,6 @@ if(length(c2_f2)>0){
 ind <- grep('salinity',names(input),ignore.case=T)
 flags[,ind] <- 1
 sal <- input[,ind]
-### missing data
-s_f1 <- which(is.na(sal))
-if(length(s_f1)>0){
-  flags[s_f1,ind] <- 9
-}
 ### out of range
 s_f2 <- which(sal>350 | sal<0)
 if(length(s_f2)>0){
@@ -154,15 +130,6 @@ if(length(s_f2)>0){
 ind <- grep('chlorophyll',names(input),ignore.case=T)
 flags[,ind] <- 1
 chl <- input[,ind]
-### missing data
-c1_f1 <- which(is.na(chl[,1]))
-c2_f1 <- which(is.na(chl[,2]))
-if(length(c1_f1)>0){
-  flags[c1_f1,ind[1]] <- 9
-}
-if(length(c2_f1)>0){
-  flags[c2_f1,ind[2]] <- 9
-}
 ### out of range
 c1_f2 <- which(chl[,1]>100 | chl[,1]<0)
 c2_f2 <- which(chl[,2]>1000 | chl[,2]<0)
@@ -176,11 +143,6 @@ if(length(c2_f2)>0){
 ind <- grep('rdo concentration',names(input),ignore.case=T)
 flags[,ind] <- 1
 rdo <- input[,ind]
-### missing data
-o_f1 <- which(is.na(rdo))
-if(length(o_f1)>0){
-  flags[o_f1,ind] <- 9
-}
 ### out of range
 o_f2 <- which(rdo>50 | rdo<0)
 if(length(o_f2)>0){
