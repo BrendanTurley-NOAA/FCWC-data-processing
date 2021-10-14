@@ -1,3 +1,9 @@
+2021-10-14  Brendan Turley
+- qaqc_automation.R: added time/gap, location, gross range, and climatological tests
+
+2021-10-13  Brendan Turley
+- qaqc_automation.R: added outline for QAQC methods based upon IOOS recommendations
+
 2021-10-06  Brendan Turley
 - aquatroll_processing.R: data_extract_aquatroll includes input filename in output; interp_aquatroll plots filename for reference
 
