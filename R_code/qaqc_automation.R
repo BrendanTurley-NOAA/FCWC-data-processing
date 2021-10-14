@@ -93,6 +93,8 @@ if(length(lat_f2)>0){
 ### these values are from the Aquatroll specification manual: https://in-situ.com/us/aqua-troll-600-multiparameter-sonde
 ###--------- Test 5) Climatological Test
 ### these values are from World Ocean Database 2018 User's Manual ver 0.10; appendix 11
+###--------- Test 6) Spike Test
+###--------- Test 7) Rate of Change Test
 # temperature
 ind <- grep('temperature',names(input),ignore.case=T)
 flags[,ind] <- 1
@@ -112,10 +114,32 @@ z <- input[,ind_dep[1]] ### depth used elsewhere for climatology
 t1_f3 <- which(z<100 & temp[,1]>35 | z<100 & temp[,1]<(-2.10))
 t1_f4 <- which(z>=100 & temp[,1]>30 | z>=100 & temp[,1]<(-2.10))
 if(length(t1_f3)>0){
-  flags[t1_f3,ind] <- 3
+  flags[t1_f3,ind[1]] <- 3
 }
 if(length(t1_f4)>0){
-  flags[t1_f4,ind] <- 3
+  flags[t1_f4,ind[1]] <- 3
+}
+### spike test; 6 = fail; 5 = suspect
+threshold_high <- 5*sd(temp[,1],na.rm=T)
+threshold_low <- 3*sd(temp[,1],na.rm=T)
+for(i in 2:(length(temp[,1])-1)){
+  threshold <- mean(temp[c((i-1),(i+1)),1],na.rm=T)
+  if(abs(temp[i,1]-threshold)>threshold_high &
+     flags[i,ind[1]]==1){
+    flags[i,ind[1]] <- 6
+  } else if (abs(temp[i,1]-threshold)>threshold_low &
+             abs(temp[i,1]-threshold)<=threshold_high &
+             flags[i,ind[1]]==1){
+    flags[i,ind[1]] <- 5
+  }
+}
+### rate of change test; 7 = suspect
+threshold_low <- 3*sd(temp[,1],na.rm=T)
+for(i in 1:(length(temp[,1])-1)){
+  if(abs(temp[i,1]-temp[(i+1),1])>threshold_low &
+     flags[i,ind[1]]==1){
+    flags[i,ind[1]] <- 7
+  }
 }
 # conductivity
 ind <- grep('conductivity',names(input),ignore.case=T)
@@ -148,6 +172,28 @@ if(length(s_f3)>0){
 if(length(s_f4)>0){
   flags[s_f4,ind] <- 3
 }
+### spike test; 6 = fail; 5 = suspect
+threshold_high <- 5*sd(sal,na.rm=T)
+threshold_low <- 3*sd(sal,na.rm=T)
+for(i in 2:(length(sal)-1)){
+  threshold <- mean(sal[c((i-1),(i+1))],na.rm=T)
+  if(abs(sal[i]-threshold)>threshold_high &
+     flags[i,ind]==1){
+    flags[i,ind] <- 6
+  } else if (abs(sal[i]-threshold)>threshold_low &
+             abs(sal[i]-threshold)<=threshold_high &
+             flags[i,ind]==1){
+    flags[i,ind] <- 5
+  }
+}
+### rate of change test; 7 = suspect
+threshold_low <- 3*sd(sal,na.rm=T)
+for(i in 1:(length(sal)-1)){
+  if(abs(sal[i]-sal[(i+1)])>threshold_low &
+     flags[i,ind]==1){
+    flags[i,ind] <- 7
+  }
+}
 # chlorophyll
 ind <- grep('chlorophyll',names(input),ignore.case=T)
 flags[,ind] <- 1
@@ -160,6 +206,48 @@ if(length(c1_f2)>0){
 }
 if(length(c2_f2)>0){
   flags[c2_f2,ind[2]] <- 4
+}
+### spike test; 6 = fail; 5 = suspect
+threshold_high <- 5*sd(chl[,1],na.rm=T)
+threshold_low <- 3*sd(chl[,1],na.rm=T)
+for(i in 2:(length(chl[,1])-1)){
+  threshold <- mean(chl[c((i-1),(i+1)),1],na.rm=T)
+  if(abs(chl[i,1]-threshold)>threshold_high &
+     flags[i,ind[1]]==1){
+    flags[i,ind[1]] <- 6
+  } else if (abs(chl[i,1]-threshold)>threshold_low &
+             abs(chl[i,1]-threshold)<=threshold_high &
+             flags[i,ind[1]]==1){
+    flags[i,ind[1]] <- 5
+  }
+}
+threshold_high <- 5*sd(chl[,2],na.rm=T)
+threshold_low <- 3*sd(chl[,2],na.rm=T)
+for(i in 2:(length(chl[,2])-1)){
+  threshold <- mean(chl[c((i-1),(i+1)),2],na.rm=T)
+  if(abs(chl[i,2]-threshold)>threshold_high &
+     flags[i,ind[1]]==1){
+    flags[i,ind[1]] <- 6
+  } else if (abs(chl[i,2]-threshold)>threshold_low &
+             abs(chl[i,2]-threshold)<=threshold_high &
+             flags[i,ind[1]]==1){
+    flags[i,ind[1]] <- 5
+  }
+}
+### rate of change test; 7 = suspect
+threshold_low <- 3*sd(chl[,1],na.rm=T)
+for(i in 1:(length(chl[,1])-1)){
+  if(abs(chl[i,1]-chl[(i+1),1])>threshold_low &
+     flags[i,ind[1]]==1){
+    flags[i,ind[1]] <- 7
+  }
+}
+threshold_low <- 3*sd(chl[,2],na.rm=T)
+for(i in 1:(length(chl[,2])-1)){
+  if(abs(chl[i,2]-chl[(i+1),2])>threshold_low &
+     flags[i,ind[2]]==1){
+    flags[i,ind[2]] <- 7
+  }
 }
 # oxygen
 ind <- grep('rdo concentration',names(input),ignore.case=T)
@@ -179,8 +267,28 @@ if(length(o_f3)>0){
 if(length(o_f4)>0){
   flags[o_f4,ind] <- 3
 }
-
-
+### spike test; 6 = fail; 5 = suspect
+threshold_high <- 5*sd(rdo,na.rm=T)
+threshold_low <- 3*sd(rdo,na.rm=T)
+for(i in 2:(length(rdo)-1)){
+  threshold <- mean(rdo[c((i-1),(i+1))],na.rm=T)
+  if(abs(rdo[i]-threshold)>threshold_high &
+     flags[i,ind]==1){
+    flags[i,ind] <- 6
+  } else if (abs(rdo[i]-threshold)>threshold_low &
+             abs(rdo[i]-threshold)<=threshold_high &
+             flags[i,ind]==1){
+    flags[i,ind] <- 5
+  }
+}
+### rate of change test; 7 = suspect
+threshold_low <- 3*sd(rdo,na.rm=T)
+for(i in 1:(length(rdo)-1)){
+  if(abs(rdo[i]-rdo[(i+1)])>threshold_low &
+     flags[i,ind]==1){
+    flags[i,ind] <- 7
+  }
+}
 
 ###--------- aquatroll quality control
 qaqc_aquatroll <- function (input # input file is the output data.frame from data_extract_aquatroll function
@@ -227,6 +335,8 @@ qaqc_aquatroll <- function (input # input file is the output data.frame from dat
   ### these values are from the Aquatroll specification manual: https://in-situ.com/us/aqua-troll-600-multiparameter-sonde
   ###--------- Test 5) Climatological Test
   ### these values are from World Ocean Database 2018 User's Manual ver 0.10; appendix 11
+  ###--------- Test 6) Spike Test
+  ###--------- Test 7) Rate of Change Test
   # temperature
   ind <- grep('temperature',names(input),ignore.case=T)
   flags[,ind] <- 1
@@ -246,10 +356,32 @@ qaqc_aquatroll <- function (input # input file is the output data.frame from dat
   t1_f3 <- which(z<100 & temp[,1]>35 | z<100 & temp[,1]<(-2.10))
   t1_f4 <- which(z>=100 & temp[,1]>30 | z>=100 & temp[,1]<(-2.10))
   if(length(t1_f3)>0){
-    flags[t1_f3,ind] <- 3
+    flags[t1_f3,ind[1]] <- 3
   }
   if(length(t1_f4)>0){
-    flags[t1_f4,ind] <- 3
+    flags[t1_f4,ind[1]] <- 3
+  }
+  ### spike test; 6 = fail; 5 = suspect
+  threshold_high <- 5*sd(temp[,1],na.rm=T)
+  threshold_low <- 3*sd(temp[,1],na.rm=T)
+  for(i in 2:(length(temp[,1])-1)){
+    threshold <- mean(temp[c((i-1),(i+1)),1],na.rm=T)
+    if(abs(temp[i,1]-threshold)>threshold_high &
+       flags[i,ind[1]]==1){
+      flags[i,ind[1]] <- 6
+    } else if (abs(temp[i,1]-threshold)>threshold_low &
+               abs(temp[i,1]-threshold)<=threshold_high &
+               flags[i,ind[1]]==1){
+      flags[i,ind[1]] <- 5
+    }
+  }
+  ### rate of change test; 7 = suspect
+  threshold_low <- 3*sd(temp[,1],na.rm=T)
+  for(i in 1:(length(temp[,1])-1)){
+    if(abs(temp[i,1]-temp[(i+1),1])>threshold_low &
+       flags[i,ind[1]]==1){
+      flags[i,ind[1]] <- 7
+    }
   }
   # conductivity
   ind <- grep('conductivity',names(input),ignore.case=T)
@@ -282,6 +414,28 @@ qaqc_aquatroll <- function (input # input file is the output data.frame from dat
   if(length(s_f4)>0){
     flags[s_f4,ind] <- 3
   }
+  ### spike test; 6 = fail; 5 = suspect
+  threshold_high <- 5*sd(sal,na.rm=T)
+  threshold_low <- 3*sd(sal,na.rm=T)
+  for(i in 2:(length(sal)-1)){
+    threshold <- mean(sal[c((i-1),(i+1))],na.rm=T)
+    if(abs(sal[i]-threshold)>threshold_high &
+       flags[i,ind]==1){
+      flags[i,ind] <- 6
+    } else if (abs(sal[i]-threshold)>threshold_low &
+               abs(sal[i]-threshold)<=threshold_high &
+               flags[i,ind]==1){
+      flags[i,ind] <- 5
+    }
+  }
+  ### rate of change test; 7 = suspect
+  threshold_low <- 3*sd(sal,na.rm=T)
+  for(i in 1:(length(sal)-1)){
+    if(abs(sal[i]-sal[(i+1)])>threshold_low &
+       flags[i,ind]==1){
+      flags[i,ind] <- 7
+    }
+  }
   # chlorophyll
   ind <- grep('chlorophyll',names(input),ignore.case=T)
   flags[,ind] <- 1
@@ -294,6 +448,48 @@ qaqc_aquatroll <- function (input # input file is the output data.frame from dat
   }
   if(length(c2_f2)>0){
     flags[c2_f2,ind[2]] <- 4
+  }
+  ### spike test; 6 = fail; 5 = suspect
+  threshold_high <- 5*sd(chl[,1],na.rm=T)
+  threshold_low <- 3*sd(chl[,1],na.rm=T)
+  for(i in 2:(length(chl[,1])-1)){
+    threshold <- mean(chl[c((i-1),(i+1)),1],na.rm=T)
+    if(abs(chl[i,1]-threshold)>threshold_high &
+       flags[i,ind[1]]==1){
+      flags[i,ind[1]] <- 6
+    } else if (abs(chl[i,1]-threshold)>threshold_low &
+               abs(chl[i,1]-threshold)<=threshold_high &
+               flags[i,ind[1]]==1){
+      flags[i,ind[1]] <- 5
+    }
+  }
+  threshold_high <- 5*sd(chl[,2],na.rm=T)
+  threshold_low <- 3*sd(chl[,2],na.rm=T)
+  for(i in 2:(length(chl[,2])-1)){
+    threshold <- mean(chl[c((i-1),(i+1)),2],na.rm=T)
+    if(abs(chl[i,2]-threshold)>threshold_high &
+       flags[i,ind[1]]==1){
+      flags[i,ind[1]] <- 6
+    } else if (abs(chl[i,2]-threshold)>threshold_low &
+               abs(chl[i,2]-threshold)<=threshold_high &
+               flags[i,ind[1]]==1){
+      flags[i,ind[1]] <- 5
+    }
+  }
+  ### rate of change test; 7 = suspect
+  threshold_low <- 3*sd(chl[,1],na.rm=T)
+  for(i in 1:(length(chl[,1])-1)){
+    if(abs(chl[i,1]-chl[(i+1),1])>threshold_low &
+       flags[i,ind[1]]==1){
+      flags[i,ind[1]] <- 7
+    }
+  }
+  threshold_low <- 3*sd(chl[,2],na.rm=T)
+  for(i in 1:(length(chl[,2])-1)){
+    if(abs(chl[i,2]-chl[(i+1),2])>threshold_low &
+       flags[i,ind[2]]==1){
+      flags[i,ind[2]] <- 7
+    }
   }
   # oxygen
   ind <- grep('rdo concentration',names(input),ignore.case=T)
@@ -312,6 +508,28 @@ qaqc_aquatroll <- function (input # input file is the output data.frame from dat
   }
   if(length(o_f4)>0){
     flags[o_f4,ind] <- 3
+  }
+  ### spike test; 6 = fail; 5 = suspect
+  threshold_high <- 5*sd(rdo,na.rm=T)
+  threshold_low <- 3*sd(rdo,na.rm=T)
+  for(i in 2:(length(rdo)-1)){
+    threshold <- mean(rdo[c((i-1),(i+1))],na.rm=T)
+    if(abs(rdo[i]-threshold)>threshold_high &
+       flags[i,ind]==1){
+      flags[i,ind] <- 6
+    } else if (abs(rdo[i]-threshold)>threshold_low &
+               abs(rdo[i]-threshold)<=threshold_high &
+               flags[i,ind]==1){
+      flags[i,ind] <- 5
+    }
+  }
+  ### rate of change test; 7 = suspect
+  threshold_low <- 3*sd(rdo,na.rm=T)
+  for(i in 1:(length(rdo)-1)){
+    if(abs(rdo[i]-rdo[(i+1)])>threshold_low &
+       flags[i,ind]==1){
+      flags[i,ind] <- 7
+    }
   }
   ### output
   return(flags)

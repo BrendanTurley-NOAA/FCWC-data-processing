@@ -1,5 +1,5 @@
 2021-10-14  Brendan Turley
-- qaqc_automation.R: added time/gap, location, gross range, and climatological tests
+- qaqc_automation.R: added time/gap, location, gross range, climatological, spike, and rate of change tests
 
 2021-10-13  Brendan Turley
 - qaqc_automation.R: added outline for QAQC methods based upon IOOS recommendations
