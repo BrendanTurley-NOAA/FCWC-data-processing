@@ -7,12 +7,13 @@ The original files are directly uploaded to GoogleDrive by the [VuSitu App](http
 * **aquatroll_fields** a helper function that just lists the standard parameters reported in aquatroll htm files
 * **summary_aquatroll** takes an .htm or .csv and returns a summary data.frame of the data including if parameters were missing from the input file or if there was sensor drop out, both of which has been an issue.
 * **data_extract_aquatroll** takes an .htm or .csv and extract all the raw data and put it into a data.frame
+* **qaqc_automation** performs quality assurance and quality control based upon Integrated Ocean Observing System ([IOOS](https://ioos.noaa.gov/project/qartod/)) recommendations
 * **interp_aquatroll** takes the data.frame output of **data_extract_aquatroll** and smooths and interpolates selected parameters for downstream visualization
 * **bottom_finder** is useful for plotting profiles to find bottom for each profile
 * **breaks** makes handy breaks for color palettes
 * **running** calculates a moving linear regression slope and moving average
 
-The current code does not perform explicit quality control on the data; however, the **summary_aquatroll** function will return missing parameters from a list of expected parameters and a list of parameters that dropped out. Drop out is when the parameter has some measurements but not for the whole time the unit was recording. This can happen when there is a bad connection or other sensor failure. If this happens, it is recommended that In-Situ technical support be contacted for further help. Instead of explicit QA/QC of the raw data, the data are instead box-car averaged into 1 meter bins. The resulting figure output is in development and needs to be beta tested with the end users (i.e., the watermen who are collecting the data).
+Code to automate QA/QC is under development using guidelines outlined by the IOOS Quality Assurance / Quality Control of Real Time Oceanogrphic Data ([QARTOD](https://ioos.noaa.gov/project/qartod/)). The **summary_aquatroll** function will return missing parameters from a list of expected parameters and a list of parameters that dropped out. Drop out is when the parameter has some measurements but not for the whole time the unit was recording. This can happen when there is a bad connection or other sensor failure. If this happens, it is recommended that In-Situ technical support be contacted for further help.
 
 
 ---
