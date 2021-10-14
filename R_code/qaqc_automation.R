@@ -150,6 +150,28 @@ s_f2 <- which(sal>350 | sal<0)
 if(length(s_f2)>0){
   flags[s_f2,ind] <- 4
 }
+# chlorophyll
+ind <- grep('chlorophyll',names(input),ignore.case=T)
+flags[,ind] <- 1
+chl <- input[,ind]
+### missing data
+c1_f1 <- which(is.na(chl[,1]))
+c2_f1 <- which(is.na(chl[,2]))
+if(length(c1_f1)>0){
+  flags[c1_f1,ind[1]] <- 9
+}
+if(length(c2_f1)>0){
+  flags[c2_f1,ind[2]] <- 9
+}
+### out of range
+c1_f2 <- which(chl[,1]>100 | chl[,1]<0)
+c2_f2 <- which(chl[,2]>1000 | chl[,2]<0)
+if(length(c1_f2)>0){
+  flags[c1_f2,ind[1]] <- 4
+}
+if(length(c2_f2)>0){
+  flags[c2_f2,ind[2]] <- 4
+}
 # oxygen
 ind <- grep('rdo concentration',names(input),ignore.case=T)
 flags[,ind] <- 1
