@@ -3,12 +3,15 @@
 ### Recommended methods to comply with IOOS standards
 # https://ioos.noaa.gov/project/qartod/
 
-# ##flags
-# Pass=1
-# Not evaluated=2
-# Suspect or Of High Interest=3
-# Fail=4
-# Missing data=9
+### flags
+# 1 = Pass
+# 2 = Not evaluated
+# 3 = Suspect or Of High Interest
+# 4 = Fail
+# 5 = suspect spike test
+# 6 = fail spike test
+# 7 = suspect rate of change test
+# 9 = Missing data
 
 ### tests
 # Group 1
@@ -54,14 +57,6 @@ input <- data_extract_aquatroll(input1)
 
 ### initialize unchecked flag matrix
 flags <- matrix(2,dim(input)[1],dim(input)[2]-4)
-### global missing data test; if NA
-na_flag <- which(is.na(input))
-if(length(na_flag)>0){
-  flags[na_flag] <- 9
-}
-### column names
-flags <- data.frame(flags)
-names(flags) <- names(input)[1:(ncol(input)-4)]
 ###--------- Test 1) Timing/Gap Test
 ind <- grep('date',names(input),ignore.case=T)
 flags[,ind] <- 1
@@ -289,6 +284,14 @@ for(i in 1:(length(rdo)-1)){
     flags[i,ind] <- 7
   }
 }
+### global missing data test; if NA
+na_flag <- which(is.na(input))
+if(length(na_flag)>0){
+  flags[na_flag] <- 9
+}
+### column names
+flags <- data.frame(flags)
+names(flags) <- names(input)[1:(ncol(input)-4)]
 
 ###--------- aquatroll quality control
 qaqc_aquatroll <- function (input # input file is the output data.frame from data_extract_aquatroll function
@@ -296,14 +299,7 @@ qaqc_aquatroll <- function (input # input file is the output data.frame from dat
 {
   ### initialize unchecked flag matrix
   flags <- matrix(2,dim(input)[1],dim(input)[2]-4)
-  ### global missing data test; if NA
-  na_flag <- which(is.na(input))
-  if(length(na_flag)>0){
-    flags[na_flag] <- 9
-  }
-  ### column names
-  flags <- data.frame(flags)
-  names(flags) <- names(input)[1:(ncol(input)-4)]
+  
   ###--------- Test 1) Timing/Gap Test
   ind <- grep('date',names(input),ignore.case=T)
   flags[,ind] <- 1
@@ -532,8 +528,17 @@ qaqc_aquatroll <- function (input # input file is the output data.frame from dat
     }
   }
   ### output
+  ### global missing data test; if NA
+  na_flag <- which(is.na(input))
+  if(length(na_flag)>0){
+    flags[na_flag] <- 9
+  }
+  ### column names
+  flags <- data.frame(flags)
+  names(flags) <- names(input)[1:(ncol(input)-4)]
   return(flags)
 }
 
 ### test
-qaqc_aquatroll(input)
+qaqc_test <- qaqc_aquatroll(input)
+hist(as.matrix(qaqc_test))
