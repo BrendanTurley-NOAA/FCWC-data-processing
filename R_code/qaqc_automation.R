@@ -541,4 +541,4 @@ qaqc_aquatroll <- function (input # input file is the output data.frame from dat
 
 ### test
 qaqc_test <- qaqc_aquatroll(input)
-hist(as.matrix(qaqc_test))
+hist(as.matrix(qaqc_test),breaks=seq(.5,9.5,1))
