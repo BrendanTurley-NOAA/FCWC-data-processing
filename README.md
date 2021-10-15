@@ -1,4 +1,4 @@
-# FCWC-data-processing
+# FCWC Data-processing
 
 The code in this repository are used to process data collected by an [In-Situ Aqua TROLL 600 Multiparameter sonde](https://in-situ.com/us/aqua-troll-600-multiparameter-sonde). The data are collected by non-profit called Florida Commercial Watermen's Conservation ([FCWC](https://floridawatermen.org)) and is a group of commercial fishermen located in southwest Florida and then transmitted to scientists at NOAA's Southeast Fisheries Science Center ([SEFSC](https://www.fisheries.noaa.gov/about/southeast-fisheries-science-center)), NOAA's Atlantic Oceanographic and Meteorological Laboratory ([AOML](https://www.aoml.noaa.gov/)), and University of Miami's Cooperative Institute for Marine and Atmospheric Studies ([CIMAS](https://cimas.rsmas.miami.edu/)). The data undergo quality assurance and quality control (QA/QC) and then visualized products are sent back to the collaborating fishermen. The data products are a work in progress with the goal of being responsive to the needs of the fishermen and to produce informative data products that can be used for planning purposes.
 
@@ -26,11 +26,13 @@ The overall objective of the code is produce a visual data product that can be d
 
 ---
 
+*This repository is a scientific product and is not official communication of the National Oceanic and Atmospheric Administration, or the United States Department of Commerce. All NOAA GitHub project code is provided on an ‘as is’ basis and the user assumes responsibility for its use. Any claims against the Department of Commerce or Department of Commerce bureaus stemming from the use of this GitHub project will be governed by all applicable Federal law. Any reference to specific commercial products, processes, or services by service mark, trademark, manufacturer, or otherwise, does not constitute or imply their endorsement, recommendation or favoring by the Department of Commerce. The Department of Commerce seal and logo, or the seal and logo of a DOC bureau, shall not be used in any manner to imply endorsement of any commercial product or activity by DOC or the United States Government.*
+
+---
+
 To do 
 
-* add QA/QC processing functions
-* make interp_aquatroll function flexible enough to skip over missing data (e.g., DO dropout)
-* make vignette on how to use functions with example data using markdown
+* add QA/QC processing functions (in process)
 * make shiny app to display data https://shiny.rstudio.com/
 * update .md using: https://r4ds.had.co.nz/r-markdown-formats.html or https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet or https://rmarkdown.rstudio.com/ examples
 
