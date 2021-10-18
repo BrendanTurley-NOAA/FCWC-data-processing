@@ -369,7 +369,11 @@ interp_aquatroll <- function (input, # input file is the output data.frame from 
     if(parms[i_par]=='temperature'){
       ind <- ind[grep('AT',names(input)[ind])]
     }
-    if(parms[i_par]=='chlorophyll' | parms[i_par]=='rdo'){
+    if(parms[i_par]=='chlorophyll'){
+      # ind <- ind[grep('Concentration',names(input)[ind])]
+      ind <- ind[grep('Fluorescence',names(input)[ind])]
+    }
+    if(parms[i_par]=='rdo'){
       ind <- ind[grep('Concentration',names(input)[ind])]
     }
     ind_all <- c(ind_all,ind)
