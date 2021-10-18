@@ -452,7 +452,7 @@ interp_aquatroll <- function (input, # input file is the output data.frame from 
       png(paste(timestamp,'plots.png',sep='_'), height = 10, width = 7, units = 'in', res=300)
     }
     cols <- c(2,'purple',3,4)
-    par(mfrow=c(2,2),mar=c(4,4,3,1))
+    par(mfrow=c(2,2),mar=c(4,4,3,1),oma=c(1,1,2,1))
     
     ### empty data.frame to store output
     temp_out <- data.frame(matrix(NA,length(breaks),length(parms)+4))
@@ -494,8 +494,14 @@ interp_aquatroll <- function (input, # input file is the output data.frame from 
       mtext('Depth (m)',2,line=2.5)
       points(temp_int$y,-temp_int$x,lwd=1.5)
       if(i_par==1){
-        mtext(input[1,grep('Date',columns)],adj=0)
-        mtext(input[1,grep('input',columns)],line=1,adj=0)
+        mtext(paste('Date collected:',input[1,grep('Date',columns)]),adj=0)
+      }
+      if(i_par==4){
+        mtext(paste('Location: N ',sprintf('%.3f',round(lat_avg,3)),', W ',
+                    sprintf('%.3f',round(lon_avg,3)),sep=''),
+              outer=T,side=3,at=.05,adj=0)
+        mtext(paste('Input file:',input[1,grep('input',columns)]),
+              outer=T,side=3,line=-1,at=.05,adj=0)
       }
       if(er){ ### plot if NAs error and no smoothing/binning
         mtext('NAs approx error',col='red')
