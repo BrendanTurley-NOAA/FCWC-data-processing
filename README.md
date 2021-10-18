@@ -9,7 +9,7 @@ The original files are directly uploaded to GoogleDrive by the [VuSitu App](http
 * **data_extract_aquatroll** takes an .htm or .csv and extract all the raw data and put it into a data.frame
 * **qaqc_automation** performs quality assurance and quality control based upon Integrated Ocean Observing System ([IOOS](https://ioos.noaa.gov/project/qartod/)) recommendations
 * **interp_aquatroll** takes the data.frame output of **data_extract_aquatroll** and smooths and interpolates selected parameters for downstream visualization
-* **bottom_finder** is useful for plotting profiles to find bottom for each profile
+* **bottom_finder** is useful to find bottom for plotting profiles
 * **breaks** makes handy breaks for color palettes
 * **running** calculates a moving linear regression slope and moving average
 
