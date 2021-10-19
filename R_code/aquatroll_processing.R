@@ -119,7 +119,7 @@ summary_aquatroll <- function(input, # htm or csv file that contains the raw aqu
   }
   H <- data.frame(H)
   D <- data.frame(D)
-  D[2:ncol(D)] <- lapply(D[2:ncol(D)],as.numeric)
+  D[2:(ncol(D)-1)] <- lapply(D[2:(ncol(D)-1)],as.numeric)
   ### strip serial numbers
   names(D) <- gsub(" \\([0-9]+\\)", "", columns)
   ### Aquatroll serial number
@@ -496,9 +496,14 @@ interp_aquatroll <- function (input, # input file is the output data.frame from 
       if(i_par==1){
         mtext(paste('Date collected:',input[1,grep('Date',columns)]),adj=0)
       }
+      if(i_par==2){
+        legend('topright',c('Raw data','Interpolated'),
+               lty=c(1,NA),pch=c(NA,1),col=c('purple',1),
+               lwd=c(2,1.5),bty='n')
+      }
       if(i_par==4){
         mtext(paste('Location: N ',sprintf('%.3f',round(lat_avg,3)),', W ',
-                    sprintf('%.3f',round(lon_avg,3)),sep=''),
+                    sprintf('%.3f',round(abs(lon_avg),3)),sep=''),
               outer=T,side=3,at=.05,adj=0)
         mtext(paste('Input file:',input[1,grep('input',columns)]),
               outer=T,side=3,line=-1,at=.05,adj=0)

@@ -1,3 +1,6 @@
+2021-10-19  Brendan Turley
+- aquatroll_processing.R: interp_aquatroll function updated to output legend in profile plots; summary_aquatroll function fixed Marked "coerced as NA" warning
+
 2021-10-18  Brendan Turley
 - aquatroll_processing.R: interp_aquatroll function changed to output chlorophyll fluoresence instead of concentration; changed output plot to give lat/lon at top for reference
 
