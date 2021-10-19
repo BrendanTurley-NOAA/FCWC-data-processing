@@ -6,9 +6,9 @@ library(fields)
 library(rgdal)
 
 ### define computer specific path to R project
-### this assumes you have a clone of the github repository: https://github.com/imaginaryfish/FCWC-data-processing.git
 path2proj <- '~/Documents/R/Github/'
 ### load necessary aquatroll processing functions
+### this assumes you have a clone of the github repository: https://github.com/imaginaryfish/FCWC-data-processing.git
 source(paste0(path2proj,'FCWC-data-processing/R_code/aquatroll_processing.R'))
 
 ### load shapefile for plotting
