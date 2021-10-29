@@ -1,4 +1,7 @@
 2021-10-19  Brendan Turley
+- shiny_prototype.R: wokring on Shiny app to display data
+
+2021-10-19  Brendan Turley
 - aquatroll_processing.R: interp_aquatroll function updated to output legend in profile plots; summary_aquatroll function fixed Marked "coerced as NA" warning
 
 2021-10-18  Brendan Turley
