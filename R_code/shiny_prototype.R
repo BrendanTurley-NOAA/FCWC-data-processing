@@ -51,8 +51,12 @@ server <- function(input, output, session) {
     # out <- data[which(data$date_utc>=ymd(input$daterange1[1]) &
     #                     data$date_utc<=ymd(input$daterange1[2])),]
     
+    o_i <- as.numeric(cut(out()$do_mgl,o_breaks))
+    
     plot(out()$date_utc,out()$do_mgl,
-         xlab='Date',ylab='Dissolved Oxygen')
+         xlab='Date',ylab='Bottom Dissolved Oxygen (mg/l)',
+         las=2,bg=o_cols[o_i],pch=21,cex=1.5)
+    abline(h=c(3.5,2),col=c('gold4','red'),lty=2,lend=2)
   })
   
   output$map <- renderLeaflet({
