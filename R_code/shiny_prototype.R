@@ -8,8 +8,10 @@ library(shiny)
 
 files_wd <- '~/Desktop/professional/projects/Postdoc_FL/data/FCWC/'
 setwd(files_wd)
-data <- read.csv('mertz2021.csv')
+# data <- read.csv('mertz2021.csv')
+data <- read.csv('all_report_shiny.csv')
 data$date_utc <- ymd_hms(data$date_utc)
+data <- data[-which(is.na(data$lon_dd)),]
 
 ox.col1 <- colorRampPalette(c(1,'firebrick4','red'))
 ox.col2 <- colorRampPalette(c('darkgoldenrod4','goldenrod2','gold'))
@@ -74,7 +76,7 @@ server <- function(input, output, session) {
       addProviderTiles(basemap) %>% 
       setView(-82.3, 26.5, zoom = 8) %>%
       addCircleMarkers(~lon_dd, ~lat_dd,
-                       radius = ~do_mgl*3,
+                       radius = ~do_mgl*2.5,
                        color = o_cols[o_i],
                        stroke = FALSE,
                        fillOpacity = 0.5,
@@ -84,7 +86,9 @@ server <- function(input, output, session) {
   
   output$table <- renderTable({
     # out()
-    dat <- data.frame(Date=as.character(out()$date_utc),DO=round(out()$do_mgl,2))
+    out <- out()[order(out()$date_utc),]
+    dat <- data.frame(Date=as.character(out$date_utc),DO=round(out$do_mgl,2))
+    # dat <- data.frame(Date=as.character(out()$date_utc),DO=round(out()$do_mgl,2))
   })
   
 }
