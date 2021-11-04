@@ -50,8 +50,6 @@ server <- function(input, output, session) {
   })
   
   output$ts_plot <- renderPlot({
-    # out <- data[which(data$date_utc>=ymd(input$daterange1[1]) &
-    #                     data$date_utc<=ymd(input$daterange1[2])),]
     
     o_i <- as.numeric(cut(out()$do_mgl,o_breaks))
     
@@ -62,8 +60,6 @@ server <- function(input, output, session) {
   })
   
   output$map <- renderLeaflet({
-    # out <- data[which(data$date_utc>=ymd(input$daterange1[1]) &
-    #                     data$date_utc<=ymd(input$daterange1[2])),]
     
     o_i <- as.numeric(cut(out()$do_mgl,o_breaks))
     
@@ -85,10 +81,9 @@ server <- function(input, output, session) {
   })
   
   output$table <- renderTable({
-    # out()
+    
     out <- out()[order(out()$date_utc),]
     dat <- data.frame(Date=as.character(out$date_utc),DO=round(out$do_mgl,2))
-    # dat <- data.frame(Date=as.character(out()$date_utc),DO=round(out()$do_mgl,2))
   })
   
 }
