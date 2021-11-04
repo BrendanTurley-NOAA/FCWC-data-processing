@@ -16,7 +16,7 @@ data <- data[-which(is.na(data$lon_dd)),]
 ox.col1 <- colorRampPalette(c(1,'firebrick4','red'))
 ox.col2 <- colorRampPalette(c('darkgoldenrod4','goldenrod2','gold'))
 ox.col3 <- colorRampPalette(c('dodgerblue4','deepskyblue2','cadetblue1'))
-o_breaks <- seq(0,10,by=.5)
+o_breaks <- seq(0,11,by=.5)
 o_cols <- c(ox.col1(length(o_breaks[o_breaks<2])),
             ox.col2(length(o_breaks[o_breaks>=2 & o_breaks<3.5])),
             ox.col3(length(o_breaks[o_breaks>=3.5])-1))
