@@ -6,7 +6,7 @@ library(leaflet)
 library(lubridate)
 library(shiny)
 
-files_wd <- '~/Desktop/professional/projects/Postdoc_FL/data/FCWC/'
+files_wd <- '~/Desktop/professional/projects/Postdoc_FL/data/FCWC/processed'
 setwd(files_wd)
 # data <- read.csv('mertz2021.csv')
 data <- read.csv('all_report_shiny.csv')
@@ -30,7 +30,8 @@ ui <- fluidPage(
                      min    = "2018-01-01",
                      max    = "2021-12-31",
                      format = "yyyy-mm-dd",
-                     separator = " - ")
+                     separator = " - "),
+      selectInput('variable', 'Variables', names(data))
     ),
     mainPanel(
       leafletOutput("map"),
