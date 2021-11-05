@@ -11,6 +11,7 @@ setwd(files_wd)
 # data <- read.csv('mertz2021.csv')
 # data <- read.csv('all_report_shiny.csv')
 data <- read.csv('all_report_shiny2.csv')
+# data <- read.csv('all_report_shiny3.csv')
 data$date_utc <- ymd_hms(data$date_utc)
 data <- data[-which(is.na(data$lon_dd)),]
 data <- data[-which(is.na(data$do_mgl)),]
