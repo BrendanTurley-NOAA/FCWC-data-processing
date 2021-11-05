@@ -9,9 +9,11 @@ library(shiny)
 files_wd <- '~/Desktop/professional/projects/Postdoc_FL/data/FCWC/processed'
 setwd(files_wd)
 # data <- read.csv('mertz2021.csv')
-data <- read.csv('all_report_shiny.csv')
+# data <- read.csv('all_report_shiny.csv')
+data <- read.csv('all_report_shiny2.csv')
 data$date_utc <- ymd_hms(data$date_utc)
 data <- data[-which(is.na(data$lon_dd)),]
+data <- data[-which(is.na(data$do_mgl)),]
 
 ox.col1 <- colorRampPalette(c(1,'firebrick4','red'))
 ox.col2 <- colorRampPalette(c('darkgoldenrod4','goldenrod2','gold'))
@@ -31,7 +33,7 @@ ui <- fluidPage(
                      max    = "2021-12-31",
                      format = "yyyy-mm-dd",
                      separator = " - "),
-      selectInput('variable', 'Variables', names(data))
+      selectInput('variable', 'Parameter', names(data))
     ),
     mainPanel(
       leafletOutput("map"),
@@ -71,14 +73,17 @@ server <- function(input, output, session) {
     
     leaflet(data = out()) %>% 
       addProviderTiles(basemap) %>% 
-      setView(-82.3, 26.5, zoom = 8) %>%
+      clearBounds() %>%
       addCircleMarkers(~lon_dd, ~lat_dd,
                        radius = ~do_mgl*2.5,
-                       color = o_cols[o_i],
-                       stroke = FALSE,
-                       fillOpacity = 0.5,
+                       fillColor = o_cols[o_i],
+                       stroke = T,
+                       color='black',
+                       weight=1,
+                       fillOpacity = 0.4,
                        popup = paste('Date (UTC):',out()$date_utc,'<br>',
-                                     'DO (mg/l):',round(out()$do_mgl,2)))
+                                     'DO (mg/l):',round(out()$do_mgl,2)))#,
+                       # clusterOptions = T)
   })
   
   output$table <- renderTable({
