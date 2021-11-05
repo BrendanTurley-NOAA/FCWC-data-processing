@@ -34,7 +34,8 @@ ui <- fluidPage(
                      max    = "2021-12-31",
                      format = "yyyy-mm-dd",
                      separator = " - "),
-      selectInput('variable', 'Parameter', names(data))
+      selectInput('Parameter', 'Parameter', names(data)),
+      selectInput('serial_num', 'Serial Number', c('all',unique(data$aquatroll_sn)))
     ),
     mainPanel(
       leafletOutput("map"),
@@ -48,10 +49,19 @@ ui <- fluidPage(
 
 server <- function(input, output, session) {
   
-  out <- reactive({
-    data[which(data$date_utc>=ymd(input$daterange1[1]) &
-                 data$date_utc<=ymd(input$daterange1[2])),]
-  })
+    out <- reactive({
+      if(input$serial_num=='all'){
+      data[which(data$date_utc>=ymd(input$daterange1[1]) &
+                   data$date_utc<=ymd(input$daterange1[2]) #&
+                   # names(data)==input$Parameter &
+      ),]
+      } else {
+        data[which(data$date_utc>=ymd(input$daterange1[1]) &
+                     data$date_utc<=ymd(input$daterange1[2]) &
+                     # names(data)==input$Parameter &
+                     data$aquatroll_sn==input$serial_num),]
+      }
+    })
   
   output$ts_plot <- renderPlot({
     
@@ -84,7 +94,7 @@ server <- function(input, output, session) {
                        fillOpacity = 0.4,
                        popup = paste('Date (UTC):',out()$date_utc,'<br>',
                                      'DO (mg/l):',round(out()$do_mgl,2)))#,
-                       # clusterOptions = T)
+    # clusterOptions = T)
   })
   
   output$table <- renderTable({
