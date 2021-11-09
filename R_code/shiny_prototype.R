@@ -16,6 +16,7 @@ data <- read.csv('all_report_shiny2.csv')
 data$date_utc <- ymd_hms(data$date_utc)
 data <- data[-which(is.na(data$lon_dd)),]
 data <- data[-which(is.na(data$do_mgl)),]
+### there is no data for April or June right now
 box_data <- data.frame(date=c(data$date_utc,ymd_hm('2020-06-01 00:00'),ymd_hm('2020-04-01 00:00')),
                               do=c(data$do_mgl,NA,NA))
 
