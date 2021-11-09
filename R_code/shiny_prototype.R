@@ -35,7 +35,7 @@ ui <- fluidPage(
                      max    = "2021-12-31",
                      format = "yyyy-mm-dd",
                      separator = " - "),
-      selectInput('Parameter', 'Parameter', names(data)),
+      selectInput('parameter', 'Parameter', names(data)),
       selectInput('serial_num', 'Serial Number', c('all',unique(data$aquatroll_sn)))
     ),
     mainPanel(
@@ -53,14 +53,15 @@ server <- function(input, output, session) {
     out <- reactive({
       if(input$serial_num=='all'){
       data[which(data$date_utc>=ymd(input$daterange1[1]) &
-                   data$date_utc<=ymd(input$daterange1[2]) #&
-                   # names(data)==input$Parameter &
-      ),]
+                   data$date_utc<=ymd(input$daterange1[2])),
+           # which(names(data)==input$parameter)
+           ]
       } else {
         data[which(data$date_utc>=ymd(input$daterange1[1]) &
-                     data$date_utc<=ymd(input$daterange1[2]) &
-                     # names(data)==input$Parameter &
-                     data$aquatroll_sn==input$serial_num),]
+                     data$date_utc<=ymd(input$daterange1[2]) & 
+                     data$aquatroll_sn==input$serial_num),
+             # which(names(data)==input$parameter)
+             ]
       }
     })
   
@@ -76,8 +77,6 @@ server <- function(input, output, session) {
   
   output$map <- renderLeaflet({
     
-    o_i <- as.numeric(cut(out()$do_mgl,o_breaks))
-    
     # basemap <- providers$Esri.NatGeoWorldMap
     basemap <- providers$Esri.OceanBasemap
     # basemap <- providers$Esri.WorldImagery
@@ -85,7 +84,14 @@ server <- function(input, output, session) {
     
     leaflet(data = out()) %>% 
       addProviderTiles(basemap) %>% 
-      clearBounds() %>%
+      fitBounds(~min(lon_dd), ~min(lat_dd), ~max(lon_dd), ~max(lat_dd))
+  })
+  
+  observe({
+    o_i <- as.numeric(cut(out()$do_mgl,o_breaks))
+    
+    leafletProxy("map", data = out()) %>%
+      clearShapes() %>%
       addCircleMarkers(~lon_dd, ~lat_dd,
                        radius = ~do_mgl*2.5,
                        fillColor = o_cols[o_i],
@@ -95,11 +101,18 @@ server <- function(input, output, session) {
                        fillOpacity = 0.4,
                        popup = paste('Date (UTC):',out()$date_utc,'<br>',
                                      'DO (mg/l):',round(out()$do_mgl,2)))#,
-    # clusterOptions = T)
-  })
+      # clusterOptions = T)
+    })
   
-  output$table <- renderTable({
+  observe({
+    os <- colorBin(o_cols,o_breaks,bins=o_breaks[seq(1,23,2)])
+    leafletProxy("map", data = out()) %>%
+      addLegend(position = "topright",
+                pal = os, values = ~do_mgl,
+                title = 'Dissolved oxygen (mg/l)')
+  })
     
+  output$table <- renderTable({
     out <- out()[order(out()$date_utc),]
     dat <- data.frame(Date=as.character(out$date_utc),DO=round(out$do_mgl,2))
   })
