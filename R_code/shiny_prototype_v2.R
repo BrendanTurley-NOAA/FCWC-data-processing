@@ -1,6 +1,7 @@
 ### https://mastering-shiny.org/index.html
 ### https://rstudio.github.io/leaflet/shiny.html
 ### https://stackoverflow.com/questions/53016404/advantages-of-reactive-vs-observe-vs-observeevent
+### https://www.r-bloggers.com/2016/03/r-shiny-leaflet-using-observers/
 
 library(DT)
 library(leaflet)
@@ -79,9 +80,11 @@ server <- function(input, output, session) {
   output$ts_plot <- renderPlot({
     if(input$parameter=='Bottom.Dissolved.Oxygen'){
       o_i <- as.numeric(cut(out()$Bottom.Dissolved.Oxygen,o_breaks))
+      parm <- out()$Bottom.Dissolved.Oxygen
+      ylab <- 'Bottom Dissolved Oxygen (mg/l)'
       
-      plot(out()$Date,out()$Bottom.Dissolved.Oxygen,
-           xlab='Date',ylab='Bottom Dissolved Oxygen (mg/l)',
+      plot(out()$Date,parm,
+           xlab='Date',ylab=ylab,
            las=2,bg=o_cols[o_i],pch=21,cex=1.5)
       # abline(h=c(3.5,2),col=c('gold4','red'),lty=2,lend=2)
     }
@@ -91,12 +94,16 @@ server <- function(input, output, session) {
     
     if(input$parameter=='Bottom.Dissolved.Oxygen'){
       o_i <- as.numeric(cut(out()$Bottom.Dissolved.Oxygen,o_breaks))
+      all_y <- box_data$bot_do
+      ylab <- 'Bottom Dissolved Oxygen (mg/l)'
+      bg <- o_cols[o_i]
+      select_y <- out()$Bottom.Dissolved.Oxygen
       
-      boxplot(box_data$bot_do~month(box_data$date),na.action = na.pass,
-              xlab='Month',ylab='Bottom Dissolved Oxygen (mg/l)',
+      boxplot(all_y~month(box_data$date),na.action = na.pass,
+              xlab='Month',ylab=ylab,
               staplewex=0,outwex=0,outline=F,lty=1,lwd=1.5,names=month.abb[1:12],las=2)
-      points(jitter(month(out()$Date),3,.3),out()$Bottom.Dissolved.Oxygen,
-             bg=o_cols[o_i],pch=21,cex=1.5)
+      points(jitter(month(out()$Date),3,.3),select_y,
+             bg=bg,pch=21,cex=1.5)
     }
   })
   
@@ -116,30 +123,43 @@ server <- function(input, output, session) {
     
     if(input$parameter=='Bottom.Dissolved.Oxygen'){
       o_i <- as.numeric(cut(out()$Bottom.Dissolved.Oxygen,o_breaks))
+      cols <- o_cols[o_i]
+      unit <- 'DO (mg/l):'
+      vals <- round(out()$Bottom.Dissolved.Oxygen,2)
+    }
+      if(input$parameter=='Surface.Dissolved.Oxygen'){
+        o_i <- as.numeric(cut(out()$Surface.Dissolved.Oxygen,o_breaks))
+        cols <- o_cols[o_i]
+        unit <- 'DO (mg/l):'
+        vals <- round(out()$Surface.Dissolved.Oxygen,2)
+        }
       
       leafletProxy("map", data = out()) %>%
         clearShapes() %>%
         addCircleMarkers(~Longitude, ~Latitude,
                          # radius = ~Bottom.Dissolved.Oxygen*2.5,
-                         radius = out()$Bottom.Dissolved.Oxygen*2.5,
-                         fillColor = o_cols[o_i],
+                         # radius = out()$Bottom.Dissolved.Oxygen*2.5,
+                         fillColor = cols,
                          stroke = T,
                          color='black',
                          weight=1,
                          fillOpacity = 0.4,
                          popup = paste('Date (UTC):',out()$Date,'<br>',
-                                       'DO (mg/l):',round(out()$Bottom.Dissolved.Oxygen,2)))#,
+                                       unit,vals))#,
       # clusterOptions = T)
-    }
+    # }
   })
   
   observe({
     if(input$parameter=='Bottom.Dissolved.Oxygen'){
       os <- colorBin(o_cols,o_breaks,bins=o_breaks[seq(1,23,2)])
+      values <- out()$Bottom.Dissolved.Oxygen
+      title <- 'Oxygen (mg/l)'
       leafletProxy("map", data = out()) %>%
         addLegend(position = "topright",
-                  pal = os, values = ~Bottom.Dissolved.Oxygen,
-                  title = 'Oxygen (mg/l)')
+                  pal = os,
+                  values = values,
+                  title = title)
     }
   })
   
