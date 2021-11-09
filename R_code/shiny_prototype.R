@@ -76,7 +76,7 @@ server <- function(input, output, session) {
     plot(out()$date_utc,out()$do_mgl,
          xlab='Date',ylab='Bottom Dissolved Oxygen (mg/l)',
          las=2,bg=o_cols[o_i],pch=21,cex=1.5)
-    abline(h=c(3.5,2),col=c('gold4','red'),lty=2,lend=2)
+    # abline(h=c(3.5,2),col=c('gold4','red'),lty=2,lend=2)
     }
   })
   
