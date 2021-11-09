@@ -38,9 +38,8 @@ ui <- fluidPage(
                      max    = "2021-12-31",
                      format = "yyyy-mm-dd",
                      separator = " - "),
-      selectInput('parameter', 'Parameter', names(data)),
-      selectInput('serial_num', 'Serial Number', c('all',unique(data$aquatroll_sn))),
-      checkboxInput("legend", "Show legend", TRUE)
+      selectInput('parameter', 'Parameter', names(data), selected='do_mgl'),
+      selectInput('serial_num', 'Serial Number', c('all',sort(unique(data$aquatroll_sn))))
     ),
     mainPanel(
       leafletOutput("map"),
@@ -71,17 +70,19 @@ server <- function(input, output, session) {
     })
   
   output$ts_plot <- renderPlot({
-    
+    if(input$parameter=='do_mgl'){
     o_i <- as.numeric(cut(out()$do_mgl,o_breaks))
     
     plot(out()$date_utc,out()$do_mgl,
          xlab='Date',ylab='Bottom Dissolved Oxygen (mg/l)',
          las=2,bg=o_cols[o_i],pch=21,cex=1.5)
     abline(h=c(3.5,2),col=c('gold4','red'),lty=2,lend=2)
+    }
   })
   
   output$boxplot <- renderPlot({
     
+    if(input$parameter=='do_mgl'){
     o_i <- as.numeric(cut(out()$do_mgl,o_breaks))
     
     boxplot(box_data$do~month(box_data$date),na.action = na.pass,
@@ -89,6 +90,7 @@ server <- function(input, output, session) {
          staplewex=0,outwex=0,outline=F,lty=1,lwd=1.5,names=month.abb[1:12],las=2)
     points(jitter(month(out()$date_utc),3,.3),out()$do_mgl,
            bg=o_cols[o_i],pch=21,cex=1.5)
+    }
   })
   
   output$map <- renderLeaflet({
@@ -104,33 +106,41 @@ server <- function(input, output, session) {
   })
   
   observe({
-    o_i <- as.numeric(cut(out()$do_mgl,o_breaks))
     
-    leafletProxy("map", data = out()) %>%
-      clearShapes() %>%
-      addCircleMarkers(~lon_dd, ~lat_dd,
-                       radius = ~do_mgl*2.5,
-                       fillColor = o_cols[o_i],
-                       stroke = T,
-                       color='black',
-                       weight=1,
-                       fillOpacity = 0.4,
-                       popup = paste('Date (UTC):',out()$date_utc,'<br>',
-                                     'DO (mg/l):',round(out()$do_mgl,2)))#,
+    if(input$parameter=='do_mgl'){
+      o_i <- as.numeric(cut(out()$do_mgl,o_breaks))
+      
+      leafletProxy("map", data = out()) %>%
+        clearShapes() %>%
+        addCircleMarkers(~lon_dd, ~lat_dd,
+                         # radius = ~do_mgl*2.5,
+                         radius = out()$do_mgl*2.5,
+                         fillColor = o_cols[o_i],
+                         stroke = T,
+                         color='black',
+                         weight=1,
+                         fillOpacity = 0.4,
+                         popup = paste('Date (UTC):',out()$date_utc,'<br>',
+                                       'DO (mg/l):',round(out()$do_mgl,2)))#,
       # clusterOptions = T)
+    }
     })
   
   observe({
+    if(input$parameter=='do_mgl'){
     os <- colorBin(o_cols,o_breaks,bins=o_breaks[seq(1,23,2)])
     leafletProxy("map", data = out()) %>%
       addLegend(position = "topright",
                 pal = os, values = ~do_mgl,
                 title = 'Oxygen (mg/l)')
+    }
   })
     
   output$table <- renderTable({
+    if(input$parameter=='do_mgl'){
     out <- out()[order(out()$date_utc),]
     dat <- data.frame(Date=as.character(out$date_utc),DO=round(out$do_mgl,2))
+    }
   })
   
 }
