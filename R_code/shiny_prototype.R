@@ -36,7 +36,8 @@ ui <- fluidPage(
                      format = "yyyy-mm-dd",
                      separator = " - "),
       selectInput('parameter', 'Parameter', names(data)),
-      selectInput('serial_num', 'Serial Number', c('all',unique(data$aquatroll_sn)))
+      selectInput('serial_num', 'Serial Number', c('all',unique(data$aquatroll_sn))),
+      checkboxInput("legend", "Show legend", TRUE)
     ),
     mainPanel(
       leafletOutput("map"),
@@ -109,7 +110,7 @@ server <- function(input, output, session) {
     leafletProxy("map", data = out()) %>%
       addLegend(position = "topright",
                 pal = os, values = ~do_mgl,
-                title = 'Dissolved oxygen (mg/l)')
+                title = 'Oxygen (mg/l)')
   })
     
   output$table <- renderTable({
