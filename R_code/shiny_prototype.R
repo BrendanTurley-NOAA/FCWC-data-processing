@@ -16,6 +16,8 @@ data <- read.csv('all_report_shiny2.csv')
 data$date_utc <- ymd_hms(data$date_utc)
 data <- data[-which(is.na(data$lon_dd)),]
 data <- data[-which(is.na(data$do_mgl)),]
+box_data <- data.frame(date=c(data$date_utc,ymd_hm('2020-06-01 00:00'),ymd_hm('2020-04-01 00:00')),
+                              do=c(data$do_mgl,NA,NA))
 
 ox.col1 <- colorRampPalette(c(1,'firebrick4','red'))
 ox.col2 <- colorRampPalette(c('darkgoldenrod4','goldenrod2','gold'))
@@ -42,6 +44,7 @@ ui <- fluidPage(
     mainPanel(
       leafletOutput("map"),
       plotOutput(outputId = "ts_plot"),
+      plotOutput(outputId = "boxplot"),
       tableOutput("table")
     )
   )
@@ -74,6 +77,17 @@ server <- function(input, output, session) {
          xlab='Date',ylab='Bottom Dissolved Oxygen (mg/l)',
          las=2,bg=o_cols[o_i],pch=21,cex=1.5)
     abline(h=c(3.5,2),col=c('gold4','red'),lty=2,lend=2)
+  })
+  
+  output$boxplot <- renderPlot({
+    
+    o_i <- as.numeric(cut(out()$do_mgl,o_breaks))
+    
+    boxplot(box_data$do~month(box_data$date),na.action = na.pass,
+         xlab='Month',ylab='Bottom Dissolved Oxygen (mg/l)',
+         staplewex=0,outwex=0,outline=F,lty=1,lwd=1.5,names=month.abb[1:12],las=2)
+    points(jitter(month(out()$date_utc),3,.3),out()$do_mgl,
+           bg=o_cols[o_i],pch=21,cex=1.5)
   })
   
   output$map <- renderLeaflet({
