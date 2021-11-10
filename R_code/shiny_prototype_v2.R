@@ -2,6 +2,7 @@
 ### https://rstudio.github.io/leaflet/shiny.html
 ### https://stackoverflow.com/questions/53016404/advantages-of-reactive-vs-observe-vs-observeevent
 ### https://www.r-bloggers.com/2016/03/r-shiny-leaflet-using-observers/
+### https://shiny.rstudio.com/articles/layout-guide.html
 
 library(DT)
 library(leaflet)
@@ -38,6 +39,8 @@ o_cols <- c(ox.col1(length(o_breaks[o_breaks<2])),
             ox.col3(length(o_breaks[o_breaks>=3.5])-1))
 
 ui <- fluidPage(
+  titlePanel("FCWC Data Explorer"),
+  
   sidebarLayout( 
     sidebarPanel(
       dateRangeInput("daterange1", "Date range:",
@@ -52,8 +55,10 @@ ui <- fluidPage(
     ),
     mainPanel(
       leafletOutput("map"),
-      plotOutput(outputId = "ts_plot"),
-      plotOutput(outputId = "boxplot"),
+      plotOutput(outputId = "ts_plot", click = "plot_click"),
+      verbatimTextOutput("info"),
+      plotOutput(outputId = "boxplot", click = "plot_click2"),
+      verbatimTextOutput("info2"),
       tableOutput("table")
     )
   )
@@ -256,6 +261,16 @@ server <- function(input, output, session) {
       dat <- data.frame('Date'=as.character(out$Date),
                         'Bottom Dissolved Oxygen (mg/l)'=round(out$Bottom.Dissolved.Oxygen,2))
     }
+  })
+  
+  output$info <- renderText({
+    paste0("Date (UTC):", as.POSIXct(input$plot_click$x, origin = "1970-01-01"),
+           "\nDissolved Oxygen (mg/l):", round(as.numeric(input$plot_click$y),2))
+  })
+  
+  output$info2 <- renderText({
+    paste0("Date (UTC):", as.POSIXct(input$plot_click2$x, origin = "1970-01-01"),
+           "\nDissolved Oxygen (mg/l):", round(as.numeric(input$plot_click2$y),2))
   })
   
 }
