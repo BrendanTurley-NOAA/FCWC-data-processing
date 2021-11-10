@@ -16,6 +16,7 @@ setwd(files_wd)
 # data <- read.csv('all_report_shiny2.csv')
 data <- read.csv('all_report_shiny3.csv')
 data$Date <- ymd_hms(data$Date)
+min.Date <- as.Date(min(data$Date))
 data <- data[-which(is.na(data$Longitude)),]
 data$Bottom.Dissolved.Oxygen[which(data$Bottom.Dissolved.Oxygen<0)] <- NA
 data <- data[-which(is.na(data$Bottom.Dissolved.Oxygen)),]
@@ -44,10 +45,10 @@ ui <- fluidPage(
   sidebarLayout( 
     sidebarPanel(
       dateRangeInput("daterange1", "Date range:",
-                     start  = "2018-01-01",
+                     start  = min.Date,
                      end    = NULL,
-                     min    = "2018-01-01",
-                     max    = "2021-12-31",
+                     min    = min.Date,
+                     max    = NULL,
                      format = "yyyy-mm-dd",
                      separator = " - "),
       selectInput('parameter', 'Parameter', names(data)[6:9], selected='Bottom.Dissolved.Oxygen'),
