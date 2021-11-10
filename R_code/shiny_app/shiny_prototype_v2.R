@@ -10,12 +10,15 @@ library(leaflet)
 library(lubridate)
 library(shiny)
 
-files_wd <- '~/Desktop/professional/projects/Postdoc_FL/data/FCWC/processed'
-setwd(files_wd)
+# files_wd <- '~/Desktop/professional/projects/Postdoc_FL/data/FCWC/processed'
+# setwd(files_wd)
 # data <- read.csv('mertz2021.csv')
 # data <- read.csv('all_report_shiny.csv')
 # data <- read.csv('all_report_shiny2.csv')
-data <- read.csv('all_report_shiny3.csv')
+# data <- read.csv('all_report_shiny3.csv')
+files_wd <- '~/Documents/R/Github/FCWC-data-processing/R_code/shiny_app/'
+setwd(files_wd)
+data <- read.csv('data/all_report_shiny3.csv')
 data$Date <- ymd_hms(data$Date)
 min.Date <- as.Date(min(data$Date))
 data <- data[-which(is.na(data$Longitude)),]
