@@ -3,6 +3,7 @@
 ### https://stackoverflow.com/questions/53016404/advantages-of-reactive-vs-observe-vs-observeevent
 ### https://www.r-bloggers.com/2016/03/r-shiny-leaflet-using-observers/
 ### https://shiny.rstudio.com/articles/layout-guide.html
+### https://shiny.rstudio.com/articles/shinyapps.html
 
 library(DT)
 library(leaflet)
