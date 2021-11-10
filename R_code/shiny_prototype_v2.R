@@ -54,11 +54,19 @@ ui <- fluidPage(
       selectInput('serial_num', 'Serial Number', c('all',sort(unique(data$aquatroll_sn))))
     ),
     mainPanel(
-      leafletOutput("map"),
+      leafletOutput("map",height=600),
+      hr(),
+      h3('Time series plot'),
+      h6('Click on any point below and the the data will be displayed below the plot'),
       plotOutput(outputId = "ts_plot", click = "plot_click"),
       verbatimTextOutput("info"),
+      hr(),
+      h3('Climatology plot'),
+      h6('Click on any point below and the the data will be displayed below the plot'),
       plotOutput(outputId = "boxplot", click = "plot_click2"),
       verbatimTextOutput("info2"),
+      hr(),
+      h3('Data table'),
       tableOutput("table")
     )
   )
@@ -150,6 +158,7 @@ server <- function(input, output, session) {
       boxplot(all_y~month(box_data$date),na.action = na.pass,
               xlab='Month',ylab=ylab,
               staplewex=0,outwex=0,outline=F,lty=1,lwd=1.5,names=month.abb[1:12],las=2)
+      # mtext('Climatology Plot',cex=2,adj=0,font=2,line=1)
       points(jitter(month(out()$Date),3,.3),select_y,
              bg=bg,pch=21,cex=1.5)
 
@@ -264,13 +273,13 @@ server <- function(input, output, session) {
   })
   
   output$info <- renderText({
-    paste0("Date (UTC):", as.POSIXct(input$plot_click$x, origin = "1970-01-01"),
-           "\nDissolved Oxygen (mg/l):", round(as.numeric(input$plot_click$y),2))
+    paste0("Date (UTC): ", as.POSIXct(input$plot_click$x, origin = "1970-01-01"),
+           "\nDissolved Oxygen (mg/l): ", round(as.numeric(input$plot_click$y),2))
   })
   
   output$info2 <- renderText({
-    paste0("Date (UTC):", as.POSIXct(input$plot_click2$x, origin = "1970-01-01"),
-           "\nDissolved Oxygen (mg/l):", round(as.numeric(input$plot_click2$y),2))
+    paste0("Date (UTC): ", as.POSIXct(input$plot_click2$x, origin = "1970-01-01"),
+           "\nDissolved Oxygen (mg/l): ", round(as.numeric(input$plot_click2$y),2))
   })
   
 }
