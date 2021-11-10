@@ -54,6 +54,7 @@ ui <- fluidPage(
       selectInput('serial_num', 'Serial Number', c('all',sort(unique(data$aquatroll_sn))))
     ),
     mainPanel(
+      h6('Click on any point on the map and the the data will pop up'),
       leafletOutput("map",height=600),
       hr(),
       h3('Time series plot'),
@@ -256,18 +257,22 @@ server <- function(input, output, session) {
     out <- out()[order(out()$Date),]
     if(input$parameter=='Surface.Temperature'){
       dat <- data.frame('Date'=as.character(out$Date),
+                        'Serial Number'=out$aquatroll_sn,
                         'Surface Temperature (C)'=round(out$Surface.Temperature,2))
     }
     if(input$parameter=='Bottom.Temperature'){
       dat <- data.frame('Date'=as.character(out$Date),
+                        'Serial Number'=out$aquatroll_sn,
                         'Bottom Tmperature (C)'=round(out$Bottom.Temperature,2))
     }
     if(input$parameter=='Surface.Dissolved.Oxygen'){
       dat <- data.frame('Date'=as.character(out$Date),
+                        'Serial Number'=out$aquatroll_sn,
                         'Surface Dissolved Oxygen (mg/l)'=round(out$Surface.Dissolved.Oxygen,2))
     }
     if(input$parameter=='Bottom.Dissolved.Oxygen'){
       dat <- data.frame('Date'=as.character(out$Date),
+                        'Serial Number'=out$aquatroll_sn,
                         'Bottom Dissolved Oxygen (mg/l)'=round(out$Bottom.Dissolved.Oxygen,2))
     }
   })
