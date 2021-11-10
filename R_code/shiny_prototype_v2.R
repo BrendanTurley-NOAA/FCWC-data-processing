@@ -27,7 +27,8 @@ box_data <- data.frame(date=c(data$Date,
                        bot_do=c(data$Bottom.Dissolved.Oxygen,rep(NA,12)))
 
 t_col <- colorRampPalette(c(1,'purple','darkorange','gold'))
-t_breaks <- seq(25,40,by=1)
+t_breaks <- seq(18,38,by=.5)
+t_cols <- t_col(length(t_breaks))
 ox.col1 <- colorRampPalette(c(1,'firebrick4','red'))
 ox.col2 <- colorRampPalette(c('darkgoldenrod4','goldenrod2','gold'))
 ox.col3 <- colorRampPalette(c('dodgerblue4','deepskyblue2','cadetblue1'))
@@ -78,33 +79,75 @@ server <- function(input, output, session) {
   })
   
   output$ts_plot <- renderPlot({
+    if(input$parameter=='Surface.Temperature'){
+      t_i <- as.numeric(cut(out()$Surface.Temperature,t_breaks))
+      bg <- t_cols[t_i]
+      parm <- out()$Surface.Temperature
+      ylab <- 'Surface Temperature (C)'
+    }
+    if(input$parameter=='Bottom.Temperature'){
+      t_i <- as.numeric(cut(out()$Bottom.Temperature,t_breaks))
+      bg <- t_cols[t_i]
+      parm <- out()$Bottom.Temperature
+      ylab <- 'Bottome Temperature (C)'
+    }
+    if(input$parameter=='Surface.Dissolved.Oxygen'){
+      o_i <- as.numeric(cut(out()$Surface.Dissolved.Oxygen,o_breaks))
+      bg <- o_cols[o_i]
+      parm <- out()$Surface.Dissolved.Oxygen
+      ylab <- 'Surface Dissolved Oxygen (mg/l)'
+    }
     if(input$parameter=='Bottom.Dissolved.Oxygen'){
       o_i <- as.numeric(cut(out()$Bottom.Dissolved.Oxygen,o_breaks))
+      bg <- o_cols[o_i]
       parm <- out()$Bottom.Dissolved.Oxygen
       ylab <- 'Bottom Dissolved Oxygen (mg/l)'
-      
+    }
+    
       plot(out()$Date,parm,
            xlab='Date',ylab=ylab,
-           las=2,bg=o_cols[o_i],pch=21,cex=1.5)
+           las=2,bg=bg,pch=21,cex=1.5)
       # abline(h=c(3.5,2),col=c('gold4','red'),lty=2,lend=2)
-    }
+      
   })
   
   output$boxplot <- renderPlot({
     
+    if(input$parameter=='Surface.Temperature'){
+      t_i <- as.numeric(cut(out()$Surface.Temperature,t_breaks))
+      bg <- t_cols[t_i]
+      all_y <- box_data$surf_t
+      ylab <- 'Surface Temperature (C)'
+      select_y <- out()$Surface.Temperature
+    }
+    if(input$parameter=='Bottom.Temperature'){
+      t_i <- as.numeric(cut(out()$Bottom.Temperature,t_breaks))
+      bg <- t_cols[t_i]
+      all_y <- box_data$bot_t
+      ylab <- 'Bottom Temperature (C)'
+      select_y <- out()$Bottom.Temperature
+    }
+    if(input$parameter=='Surface.Dissolved.Oxygen'){
+      o_i <- as.numeric(cut(out()$Surface.Dissolved.Oxygen,o_breaks))
+      bg <- o_cols[o_i]
+      all_y <- box_data$surf_do
+      ylab <- 'Surface Dissolved Oxygen (mg/l)'
+      select_y <- out()$Surface.Dissolved.Oxygen
+    }
     if(input$parameter=='Bottom.Dissolved.Oxygen'){
       o_i <- as.numeric(cut(out()$Bottom.Dissolved.Oxygen,o_breaks))
+      bg <- o_cols[o_i]
       all_y <- box_data$bot_do
       ylab <- 'Bottom Dissolved Oxygen (mg/l)'
-      bg <- o_cols[o_i]
       select_y <- out()$Bottom.Dissolved.Oxygen
+    }
       
       boxplot(all_y~month(box_data$date),na.action = na.pass,
               xlab='Month',ylab=ylab,
               staplewex=0,outwex=0,outline=F,lty=1,lwd=1.5,names=month.abb[1:12],las=2)
       points(jitter(month(out()$Date),3,.3),select_y,
              bg=bg,pch=21,cex=1.5)
-    }
+
   })
   
   output$map <- renderLeaflet({
@@ -120,53 +163,98 @@ server <- function(input, output, session) {
   })
   
   observe({
-    
+   
+    if(input$parameter=='Surface.Temperature'){
+      t_i <- as.numeric(cut(out()$Surface.Temperature,t_breaks))
+      cols <- t_cols[t_i]
+      unit <- 'Temperature (C):'
+      vals <- round(out()$Surface.Temperature,2)
+      ext <- 1/2
+    }
+    if(input$parameter=='Bottom.Temperature'){
+      t_i <- as.numeric(cut(out()$Bottom.Temperature,t_breaks))
+      cols <- t_cols[t_i]
+      unit <- 'Temperature (C):'
+      vals <- round(out()$Bottom.Temperature,2)
+      ext <- 1/2
+    }
+    if(input$parameter=='Surface.Dissolved.Oxygen'){
+      o_i <- as.numeric(cut(out()$Surface.Dissolved.Oxygen,o_breaks))
+      cols <- o_cols[o_i]
+      unit <- 'DO (mg/l):'
+      vals <- round(out()$Surface.Dissolved.Oxygen,2)
+      ext <- 2.5
+    } 
     if(input$parameter=='Bottom.Dissolved.Oxygen'){
       o_i <- as.numeric(cut(out()$Bottom.Dissolved.Oxygen,o_breaks))
       cols <- o_cols[o_i]
       unit <- 'DO (mg/l):'
       vals <- round(out()$Bottom.Dissolved.Oxygen,2)
+      ext <- 2.5
     }
-      if(input$parameter=='Surface.Dissolved.Oxygen'){
-        o_i <- as.numeric(cut(out()$Surface.Dissolved.Oxygen,o_breaks))
-        cols <- o_cols[o_i]
-        unit <- 'DO (mg/l):'
-        vals <- round(out()$Surface.Dissolved.Oxygen,2)
-        }
-      
-      leafletProxy("map", data = out()) %>%
-        clearShapes() %>%
-        addCircleMarkers(~Longitude, ~Latitude,
-                         # radius = ~Bottom.Dissolved.Oxygen*2.5,
-                         # radius = out()$Bottom.Dissolved.Oxygen*2.5,
-                         fillColor = cols,
-                         stroke = T,
-                         color='black',
-                         weight=1,
-                         fillOpacity = 0.4,
-                         popup = paste('Date (UTC):',out()$Date,'<br>',
-                                       unit,vals))#,
-      # clusterOptions = T)
+    
+    leafletProxy("map", data = out()) %>%
+      clearMarkers() %>%
+      addCircleMarkers(~Longitude, ~Latitude,
+                       radius = vals*ext,
+                       fillColor = cols,
+                       stroke = T,
+                       color='black',
+                       weight=1,
+                       fillOpacity = 0.4,
+                       popup = paste('Date (UTC):',out()$Date,'<br>',
+                                     unit,vals))#,
+    # clusterOptions = T)
     # }
+
   })
   
   observe({
+    if(input$parameter=='Surface.Temperature'){
+      os <- colorBin(t_cols,t_breaks,bins=t_breaks[seq(1,16,2)])
+      values <- out()$Surface.Temperature
+      title <- 'Temperature (C)'
+    }
+    if(input$parameter=='Bottom.Temperature'){
+      os <- colorBin(t_cols,t_breaks,bins=t_breaks[seq(1,16,2)])
+      values <- out()$Bottom.Temperature
+      title <- 'Temperature (C)'
+    }
+    if(input$parameter=='Surface.Dissolved.Oxygen'){
+      os <- colorBin(o_cols,o_breaks,bins=o_breaks[seq(1,23,2)])
+      values <- out()$Surface.Dissolved.Oxygen
+      title <- 'Oxygen (mg/l)'
+    }
     if(input$parameter=='Bottom.Dissolved.Oxygen'){
       os <- colorBin(o_cols,o_breaks,bins=o_breaks[seq(1,23,2)])
       values <- out()$Bottom.Dissolved.Oxygen
       title <- 'Oxygen (mg/l)'
-      leafletProxy("map", data = out()) %>%
-        addLegend(position = "topright",
-                  pal = os,
-                  values = values,
-                  title = title)
     }
+    leafletProxy("map", data = out()) %>%
+      clearControls() %>%
+      addLegend(position = "topright",
+                pal = os,
+                values = values,
+                title = title)
   })
   
   output$table <- renderTable({
+    out <- out()[order(out()$Date),]
+    if(input$parameter=='Surface.Temperature'){
+      dat <- data.frame('Date'=as.character(out$Date),
+                        'Surface Temperature (C)'=round(out$Surface.Temperature,2))
+    }
+    if(input$parameter=='Bottom.Temperature'){
+      dat <- data.frame('Date'=as.character(out$Date),
+                        'Bottom Tmperature (C)'=round(out$Bottom.Temperature,2))
+    }
+    if(input$parameter=='Surface.Dissolved.Oxygen'){
+      dat <- data.frame('Date'=as.character(out$Date),
+                        'Surface Dissolved Oxygen (mg/l)'=round(out$Surface.Dissolved.Oxygen,2))
+    }
     if(input$parameter=='Bottom.Dissolved.Oxygen'){
-      out <- out()[order(out()$Date),]
-      dat <- data.frame(Date=as.character(out$Date),DO=round(out$Bottom.Dissolved.Oxygen,2))
+      dat <- data.frame('Date'=as.character(out$Date),
+                        'Bottom Dissolved Oxygen (mg/l)'=round(out$Bottom.Dissolved.Oxygen,2))
     }
   })
   
