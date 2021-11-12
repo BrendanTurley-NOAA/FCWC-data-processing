@@ -57,12 +57,15 @@ ui <- fluidPage(
                      format = "yyyy-mm-dd",
                      separator = " - "),
       selectInput('parameter', 'Parameter', names(data)[6:9], selected='Bottom.Dissolved.Oxygen'),
-      selectInput('serial_num', 'Serial Number', c('all',sort(unique(data$aquatroll_sn))))
+      selectInput('serial_num', 'Serial Number', c('all',sort(unique(data$aquatroll_sn)))),
+      width = 3
     ),
     mainPanel(
       h6('Click on any point on the map and the data will pop up'),
       leafletOutput("map",height=600),
       verbatimTextOutput("map_marker_click"),
+      hr(),
+      h3('Depth profiles'),
       fluidRow(
         column(width = 6, plotOutput(outputId = "t_profile")),
         column(width = 6, plotOutput(outputId = "s_profile"))
@@ -173,7 +176,7 @@ server <- function(input, output, session) {
     }
     
     boxplot(all_y~month(box_data$date),na.action = na.pass,
-            xlab='Month',ylab=ylab,
+            xlab='Month',ylab=ylab,col='lightskyblue1',
             staplewex=0,outwex=0,outline=F,lty=1,lwd=1.5,names=month.abb[1:12],las=2)
     # mtext('Climatology Plot',cex=2,adj=0,font=2,line=1)
     points(jitter(month(out()$Date),3,.3),select_y,
