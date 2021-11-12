@@ -61,6 +61,14 @@ ui <- fluidPage(
       h6('Click on any point on the map and the data will pop up'),
       leafletOutput("map",height=600),
       verbatimTextOutput("map_marker_click"),
+      fluidRow(
+        column(width = 6, plotOutput(outputId = "t_profile")),
+        column(width = 6, plotOutput(outputId = "s_profile"))
+      ),
+      fluidRow(
+        column(width = 6, plotOutput(outputId = "c_profile")),
+        column(width = 6, plotOutput(outputId = "o_profile"))
+      ),
       hr(),
       h3('Time series plot'),
       h6('Click on any point below and the the data will be displayed below the plot'),
@@ -71,15 +79,7 @@ ui <- fluidPage(
       h6('Click on any point below and the the data will be displayed below the plot'),
       plotOutput(outputId = "boxplot", click = "plot_click2"),
       verbatimTextOutput("info2"),
-      fluidRow(
-        column(width = 6, plotOutput(outputId = "t_profile")),
-        column(width = 6, plotOutput(outputId = "s_profile"))
-      ),
-        fluidRow(
-        column(width = 6, plotOutput(outputId = "c_profile")),
-        column(width = 6, plotOutput(outputId = "o_profile"))
-      )
-      # hr(),
+      hr()
       # h3('Data table'),
       # tableOutput("table")
     )
@@ -336,6 +336,7 @@ server <- function(input, output, session) {
                                     out()$Longitude==input$map_marker_click$lng),])[1]
     select_profile <- interp[which(interp$profile.index==details),]
     
+    par(mar=c(4,4,1,1))
     plot(select_profile$temp_c,-select_profile$depth_m,
          typ='l',lwd=2,col='blue',las=1,
          xlab='Temperature (C)', ylab='Depth (m)')
@@ -350,6 +351,7 @@ server <- function(input, output, session) {
                                     out()$Longitude==input$map_marker_click$lng),])[1]
     select_profile <- interp[which(interp$profile.index==details),]
     
+    par(mar=c(4,4,1,1))
     plot(select_profile$sal_psu,-select_profile$depth_m,
          typ='l',lwd=2,col='purple',las=1,
          xlab='Salinity (psu)', ylab='Depth (m)')
@@ -364,6 +366,7 @@ server <- function(input, output, session) {
                                     out()$Longitude==input$map_marker_click$lng),])[1]
     select_profile <- interp[which(interp$profile.index==details),]
     
+    par(mar=c(4,4,1,1))
     plot(select_profile$chl_rfu,-select_profile$depth_m,
          typ='l',lwd=2,col='forestgreen',las=1,
          xlab='Chlorophyll (RFU)', ylab='Depth (m)')
@@ -378,9 +381,10 @@ server <- function(input, output, session) {
                                     out()$Longitude==input$map_marker_click$lng),])[1]
     select_profile <- interp[which(interp$profile.index==details),]
     
+    par(mar=c(4,4,1,1))
     plot(select_profile$do_mgl,-select_profile$depth_m,
          typ='l',lwd=2,col='red',las=1,
-         xlab='Dissolved Oxygen (mg/l(', ylab='Depth (m)')
+         xlab='Dissolved Oxygen (mg/l)', ylab='Depth (m)')
   })
   
   
