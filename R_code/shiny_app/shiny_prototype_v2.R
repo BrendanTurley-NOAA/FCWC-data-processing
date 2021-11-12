@@ -4,10 +4,14 @@
 ### https://www.r-bloggers.com/2016/03/r-shiny-leaflet-using-observers/
 ### https://shiny.rstudio.com/articles/layout-guide.html
 ### https://shiny.rstudio.com/articles/shinyapps.html
+### https://beta.rstudioconnect.com/content/2671/Combining-Shiny-R-Markdown.html
+### https://resources.symbolix.com.au/2020/10/28/downloadable-reports-shiny/
+### https://stefanengineering.com/2019/08/31/dynamic-r-markdown-reports-with-shiny/
 
 library(DT)
 library(leaflet)
 library(lubridate)
+library(rmarkdown)
 library(shiny)
 
 # files_wd <- '~/Desktop/professional/projects/Postdoc_FL/data/FCWC/processed'
@@ -59,14 +63,18 @@ ui <- fluidPage(
                                            separator = " - "),
                             selectInput('parameter', 'Parameter', names(data)[6:9], selected='Bottom.Dissolved.Oxygen'),
                             selectInput('serial_num', 'Serial Number', c('all',sort(unique(data$aquatroll_sn)))),
+                            radioButtons('format', 'Document format', c('PDF', 'HTML', 'Word'),
+                                         inline = TRUE),
+                            downloadButton('downloadReport'),
                             width = 3
                           ),
                           mainPanel(
-                            h6('Click on any point on the map and the data will pop up'),
+                            h6('Click on any point on the map and the data will pop up and depth profiles will be displayed below map'),
                             leafletOutput("map",height=600),
                             verbatimTextOutput("map_marker_click"),
                             hr(),
                             h3('Depth profiles'),
+                            h6('Depth profiles will be displayed after clicking a marker on map above'),
                             fluidRow(
                               column(width = 6, plotOutput(outputId = "t_profile")),
                               column(width = 6, plotOutput(outputId = "s_profile"))
@@ -408,6 +416,30 @@ server <- function(input, output, session) {
          typ='l',lwd=2,col='red',las=1,
          xlab='Dissolved Oxygen (mg/l)', ylab='Depth (m)')
   })
+  
+  output$downloadReport <- downloadHandler(
+    filename = function() {
+      paste('my-report', sep = '.', switch(
+        input$format, PDF = 'pdf', HTML = 'html', Word = 'docx'
+      ))
+    },
+    
+    content = function(file) {
+      src <- normalizePath('report.Rmd')
+      
+      # temporarily switch to the temp dir, in case you do not have write
+      # permission to the current working directory
+      owd <- setwd(tempdir())
+      on.exit(setwd(owd))
+      file.copy(src, 'report.Rmd', overwrite = TRUE)
+      
+      out <- render('report.Rmd', switch(
+        input$format,
+        PDF = pdf_document(), HTML = html_document(), Word = word_document()
+      ))
+      file.rename(out, file)
+    }
+  )
   
   
 }

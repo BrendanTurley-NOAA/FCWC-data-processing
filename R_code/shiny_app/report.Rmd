@@ -1,0 +1,10 @@
+---
+title: "FCWC Data Explorer Report"
+output: html_document
+params:
+  text: 'NULL'
+---
+
+# This is just a test. Function being added soon.
+
+`r params[["text"]]`
