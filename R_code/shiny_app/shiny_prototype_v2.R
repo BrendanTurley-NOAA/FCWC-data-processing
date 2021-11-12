@@ -33,7 +33,7 @@ box_data <- data.frame(date=c(data$Date,
 t_col <- colorRampPalette(c(1,'purple','darkorange','gold'))
 t_breaks <- seq(18,38,by=.5)
 t_cols <- t_col(length(t_breaks))
-ox.col1 <- colorRampPalette(c(1,'darkred','red'))
+ox.col1 <- colorRampPalette(c('darkred','red2','sienna1'))
 ox.col2 <- colorRampPalette(c('darkgoldenrod4','goldenrod2','gold'))
 # ox.col3 <- colorRampPalette(c('dodgerblue4','deepskyblue2','cadetblue1'))
 ox.col3 <- colorRampPalette(c('gray20','gray60','gray90'))
