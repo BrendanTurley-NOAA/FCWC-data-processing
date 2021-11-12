@@ -10,11 +10,9 @@ library(leaflet)
 library(lubridate)
 library(shiny)
 
-# files_wd <- '~/Desktop/professional/projects/Postdoc_FL/data/FCWC/processed'
-# setwd(files_wd)
-# data <- read.csv('mertz2021.csv')
-# data <- read.csv('all_report_shiny.csv')
-# data <- read.csv('all_report_shiny2.csv')
+files_wd <- '~/Desktop/professional/projects/Postdoc_FL/data/FCWC/processed'
+setwd(files_wd)
+interp <- read.csv('aquatroll_data_interp.csv')
 # data <- read.csv('all_report_shiny3.csv')
 files_wd <- '~/Documents/R/Github/FCWC-data-processing/R_code/shiny_app/'
 setwd(files_wd)
@@ -35,9 +33,10 @@ box_data <- data.frame(date=c(data$Date,
 t_col <- colorRampPalette(c(1,'purple','darkorange','gold'))
 t_breaks <- seq(18,38,by=.5)
 t_cols <- t_col(length(t_breaks))
-ox.col1 <- colorRampPalette(c(1,'firebrick4','red'))
+ox.col1 <- colorRampPalette(c(1,'darkred','red'))
 ox.col2 <- colorRampPalette(c('darkgoldenrod4','goldenrod2','gold'))
-ox.col3 <- colorRampPalette(c('dodgerblue4','deepskyblue2','cadetblue1'))
+# ox.col3 <- colorRampPalette(c('dodgerblue4','deepskyblue2','cadetblue1'))
+ox.col3 <- colorRampPalette(c('gray20','gray60','gray90'))
 o_breaks <- seq(0,11,by=.5)
 o_cols <- c(ox.col1(length(o_breaks[o_breaks<2])),
             ox.col2(length(o_breaks[o_breaks>=2 & o_breaks<3.5])),
@@ -59,8 +58,9 @@ ui <- fluidPage(
       selectInput('serial_num', 'Serial Number', c('all',sort(unique(data$aquatroll_sn))))
     ),
     mainPanel(
-      h6('Click on any point on the map and the the data will pop up'),
+      h6('Click on any point on the map and the data will pop up'),
       leafletOutput("map",height=600),
+      verbatimTextOutput("map_marker_click"),
       hr(),
       h3('Time series plot'),
       h6('Click on any point below and the the data will be displayed below the plot'),
@@ -71,9 +71,17 @@ ui <- fluidPage(
       h6('Click on any point below and the the data will be displayed below the plot'),
       plotOutput(outputId = "boxplot", click = "plot_click2"),
       verbatimTextOutput("info2"),
-      hr(),
-      h3('Data table'),
-      tableOutput("table")
+      fluidRow(
+        column(width = 6, plotOutput(outputId = "t_profile")),
+        column(width = 6, plotOutput(outputId = "s_profile"))
+      ),
+        fluidRow(
+        column(width = 6, plotOutput(outputId = "c_profile")),
+        column(width = 6, plotOutput(outputId = "o_profile"))
+      )
+      # hr(),
+      # h3('Data table'),
+      # tableOutput("table")
     )
   )
 )
@@ -123,11 +131,12 @@ server <- function(input, output, session) {
       ylab <- 'Bottom Dissolved Oxygen (mg/l)'
     }
     
-      plot(out()$Date,parm,
-           xlab='Date',ylab=ylab,
-           las=2,bg=bg,pch=21,cex=1.5)
-      # abline(h=c(3.5,2),col=c('gold4','red'),lty=2,lend=2)
-      
+    plot(out()$Date,parm,
+         xlab='Date',ylab=ylab,
+         las=2,bg=bg,pch=21,cex=1.5)
+    abline(v=as.POSIXct(seq(ymd('2018-01-01'),ymd('2030-01-01'),'month'), origin = "1970-01-01"),lty=3)
+    # abline(h=c(3.5,2),col=c('gold4','red'),lty=2,lend=2)
+    
   })
   
   output$boxplot <- renderPlot({
@@ -160,20 +169,21 @@ server <- function(input, output, session) {
       ylab <- 'Bottom Dissolved Oxygen (mg/l)'
       select_y <- out()$Bottom.Dissolved.Oxygen
     }
-      
-      boxplot(all_y~month(box_data$date),na.action = na.pass,
-              xlab='Month',ylab=ylab,
-              staplewex=0,outwex=0,outline=F,lty=1,lwd=1.5,names=month.abb[1:12],las=2)
-      # mtext('Climatology Plot',cex=2,adj=0,font=2,line=1)
-      points(jitter(month(out()$Date),3,.3),select_y,
-             bg=bg,pch=21,cex=1.5)
-
+    
+    boxplot(all_y~month(box_data$date),na.action = na.pass,
+            xlab='Month',ylab=ylab,
+            staplewex=0,outwex=0,outline=F,lty=1,lwd=1.5,names=month.abb[1:12],las=2)
+    # mtext('Climatology Plot',cex=2,adj=0,font=2,line=1)
+    points(jitter(month(out()$Date),3,.3),select_y,
+           bg=bg,pch=21,cex=1.5)
+    
   })
   
   output$map <- renderLeaflet({
     
     # basemap <- providers$Esri.NatGeoWorldMap
     basemap <- providers$Esri.OceanBasemap
+    # basemap <- providers$CartoDB.Positron
     # basemap <- providers$Esri.WorldImagery
     # basemap <- providers$Esri.WorldTopoMap
     
@@ -183,7 +193,7 @@ server <- function(input, output, session) {
   })
   
   observe({
-   
+    
     if(input$parameter=='Surface.Temperature'){
       t_i <- as.numeric(cut(out()$Surface.Temperature,t_breaks))
       cols <- t_cols[t_i]
@@ -226,7 +236,7 @@ server <- function(input, output, session) {
                                      unit,vals))#,
     # clusterOptions = T)
     # }
-
+    
   })
   
   observe({
@@ -258,39 +268,121 @@ server <- function(input, output, session) {
                 title = title)
   })
   
-  output$table <- renderTable({
-    out <- out()[order(out()$Date),]
-    if(input$parameter=='Surface.Temperature'){
-      dat <- data.frame('Date'=as.character(out$Date),
-                        'Serial Number'=out$aquatroll_sn,
-                        'Surface Temperature (C)'=round(out$Surface.Temperature,2))
-    }
-    if(input$parameter=='Bottom.Temperature'){
-      dat <- data.frame('Date'=as.character(out$Date),
-                        'Serial Number'=out$aquatroll_sn,
-                        'Bottom Tmperature (C)'=round(out$Bottom.Temperature,2))
-    }
-    if(input$parameter=='Surface.Dissolved.Oxygen'){
-      dat <- data.frame('Date'=as.character(out$Date),
-                        'Serial Number'=out$aquatroll_sn,
-                        'Surface Dissolved Oxygen (mg/l)'=round(out$Surface.Dissolved.Oxygen,2))
-    }
-    if(input$parameter=='Bottom.Dissolved.Oxygen'){
-      dat <- data.frame('Date'=as.character(out$Date),
-                        'Serial Number'=out$aquatroll_sn,
-                        'Bottom Dissolved Oxygen (mg/l)'=round(out$Bottom.Dissolved.Oxygen,2))
-    }
-  })
+  # output$table <- renderTable({
+  #   out <- out()[order(out()$Date),]
+  #   if(input$parameter=='Surface.Temperature'){
+  #     dat <- data.frame('Date'=as.character(out$Date),
+  #                       'Serial Number'=out$aquatroll_sn,
+  #                       'Surface Temperature (C)'=round(out$Surface.Temperature,2))
+  #   }
+  #   if(input$parameter=='Bottom.Temperature'){
+  #     dat <- data.frame('Date'=as.character(out$Date),
+  #                       'Serial Number'=out$aquatroll_sn,
+  #                       'Bottom Temperature (C)'=round(out$Bottom.Temperature,2))
+  #   }
+  #   if(input$parameter=='Surface.Dissolved.Oxygen'){
+  #     dat <- data.frame('Date'=as.character(out$Date),
+  #                       'Serial Number'=out$aquatroll_sn,
+  #                       'Surface Dissolved Oxygen (mg/l)'=round(out$Surface.Dissolved.Oxygen,2))
+  #   }
+  #   if(input$parameter=='Bottom.Dissolved.Oxygen'){
+  #     dat <- data.frame('Date'=as.character(out$Date),
+  #                       'Serial Number'=out$aquatroll_sn,
+  #                       'Bottom Dissolved Oxygen (mg/l)'=round(out$Bottom.Dissolved.Oxygen,2))
+  #   }
+  # })
   
   output$info <- renderText({
+    if(input$parameter=='Surface.Temperature' | 
+       input$parameter=='Bottom.Temperature' ){
+      y_click <- "\nTemperature (C): "
+    }
+    if(input$parameter=='Bottom.Dissolved.Oxygen' | 
+       input$parameter=='Surface.Dissolved.Oxygen' ){
+      y_click <- "\nDissolved Oxygen (mg/l): "
+    }
     paste0("Date (UTC): ", as.POSIXct(input$plot_click$x, origin = "1970-01-01"),
-           "\nDissolved Oxygen (mg/l): ", round(as.numeric(input$plot_click$y),2))
+           y_click, round(as.numeric(input$plot_click$y),2))
   })
   
   output$info2 <- renderText({
-    paste0("Date (UTC): ", as.POSIXct(input$plot_click2$x, origin = "1970-01-01"),
-           "\nDissolved Oxygen (mg/l): ", round(as.numeric(input$plot_click2$y),2))
+    if(input$parameter=='Surface.Temperature' | 
+       input$parameter=='Bottom.Temperature' ){
+      y_click <- "Temperature (C): "
+    }
+    if(input$parameter=='Bottom.Dissolved.Oxygen' | 
+       input$parameter=='Surface.Dissolved.Oxygen' ){
+      y_click <- "Dissolved Oxygen (mg/l): "
+    }
+    paste0(y_click, round(as.numeric(input$plot_click2$y),2))
   })
+  
+  output$map_marker_click <- renderText({
+    ### this function can be used to plot out profiles when clicked on map; but needs interpolated data.frame too
+    details <- unlist(out()[which(out()$Latitude==input$map_marker_click$lat &
+                                    out()$Longitude==input$map_marker_click$lng),])[6:9]
+    paste('Surface Temperature (C):',round(as.numeric(details[1]),2),
+          '\nBottom Temperature (C):',round(as.numeric(details[2]),2),
+          '\nSurface Dissolved Oxygen (mg/l):',round(as.numeric(details[3]),2),
+          '\nBottom Dissolved Oxygen (mg/l):',round(as.numeric(details[4]),2))
+  })
+  
+  output$t_profile <- renderPlot({
+    click <- input$map_marker_click
+    if (is.null(click)){
+      return()
+    }
+    details <- unlist(out()[which(out()$Latitude==input$map_marker_click$lat &
+                                    out()$Longitude==input$map_marker_click$lng),])[1]
+    select_profile <- interp[which(interp$profile.index==details),]
+    
+    plot(select_profile$temp_c,-select_profile$depth_m,
+         typ='l',lwd=2,col='blue',las=1,
+         xlab='Temperature (C)', ylab='Depth (m)')
+  })
+  
+  output$s_profile <- renderPlot({
+    click <- input$map_marker_click
+    if (is.null(click)){
+      return()
+    }
+    details <- unlist(out()[which(out()$Latitude==input$map_marker_click$lat &
+                                    out()$Longitude==input$map_marker_click$lng),])[1]
+    select_profile <- interp[which(interp$profile.index==details),]
+    
+    plot(select_profile$sal_psu,-select_profile$depth_m,
+         typ='l',lwd=2,col='purple',las=1,
+         xlab='Salinity (psu)', ylab='Depth (m)')
+  })
+  
+  output$c_profile <- renderPlot({
+    click <- input$map_marker_click
+    if (is.null(click)){
+      return()
+    }
+    details <- unlist(out()[which(out()$Latitude==input$map_marker_click$lat &
+                                    out()$Longitude==input$map_marker_click$lng),])[1]
+    select_profile <- interp[which(interp$profile.index==details),]
+    
+    plot(select_profile$chl_rfu,-select_profile$depth_m,
+         typ='l',lwd=2,col='forestgreen',las=1,
+         xlab='Chlorophyll (RFU)', ylab='Depth (m)')
+  })
+  
+  output$o_profile <- renderPlot({
+    click <- input$map_marker_click
+    if (is.null(click)){
+      return()
+    }
+    details <- unlist(out()[which(out()$Latitude==input$map_marker_click$lat &
+                                    out()$Longitude==input$map_marker_click$lng),])[1]
+    select_profile <- interp[which(interp$profile.index==details),]
+    
+    plot(select_profile$do_mgl,-select_profile$depth_m,
+         typ='l',lwd=2,col='red',las=1,
+         xlab='Dissolved Oxygen (mg/l(', ylab='Depth (m)')
+  })
+  
   
 }
 
