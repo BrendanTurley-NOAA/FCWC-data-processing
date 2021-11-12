@@ -45,49 +45,65 @@ o_cols <- c(ox.col1(length(o_breaks[o_breaks<2])),
 
 ### ------------ ui ------------
 ui <- fluidPage(
-  titlePanel("FCWC Data Explorer"),
-  
-  sidebarLayout( 
-    sidebarPanel(
-      dateRangeInput("daterange1", "Date range:",
-                     start  = min.Date,
-                     end    = NULL,
-                     min    = min.Date,
-                     max    = NULL,
-                     format = "yyyy-mm-dd",
-                     separator = " - "),
-      selectInput('parameter', 'Parameter', names(data)[6:9], selected='Bottom.Dissolved.Oxygen'),
-      selectInput('serial_num', 'Serial Number', c('all',sort(unique(data$aquatroll_sn)))),
-      width = 3
-    ),
-    mainPanel(
-      h6('Click on any point on the map and the data will pop up'),
-      leafletOutput("map",height=600),
-      verbatimTextOutput("map_marker_click"),
-      hr(),
-      h3('Depth profiles'),
-      fluidRow(
-        column(width = 6, plotOutput(outputId = "t_profile")),
-        column(width = 6, plotOutput(outputId = "s_profile"))
-      ),
-      fluidRow(
-        column(width = 6, plotOutput(outputId = "c_profile")),
-        column(width = 6, plotOutput(outputId = "o_profile"))
-      ),
-      hr(),
-      h3('Time series plot'),
-      h6('Click on any point below and the the data will be displayed below the plot'),
-      plotOutput(outputId = "ts_plot", click = "plot_click"),
-      verbatimTextOutput("info"),
-      hr(),
-      h3('Climatology plot'),
-      h6('Click on any point below and the the data will be displayed below the plot'),
-      plotOutput(outputId = "boxplot", click = "plot_click2"),
-      verbatimTextOutput("info2"),
-      hr()
-      # h3('Data table'),
-      # tableOutput("table")
-    )
+  tabsetPanel( tabPanel("Data Visualization",
+                        titlePanel("FCWC Data Explorer"),
+                        sidebarLayout( 
+                          sidebarPanel(
+                            dateRangeInput("daterange1", "Date range:",
+                                           start  = min.Date,
+                                           end    = NULL,
+                                           min    = min.Date,
+                                           max    = NULL,
+                                           format = "yyyy-mm-dd",
+                                           separator = " - "),
+                            selectInput('parameter', 'Parameter', names(data)[6:9], selected='Bottom.Dissolved.Oxygen'),
+                            selectInput('serial_num', 'Serial Number', c('all',sort(unique(data$aquatroll_sn)))),
+                            width = 3
+                          ),
+                          mainPanel(
+                            h6('Click on any point on the map and the data will pop up'),
+                            leafletOutput("map",height=600),
+                            verbatimTextOutput("map_marker_click"),
+                            hr(),
+                            h3('Depth profiles'),
+                            fluidRow(
+                              column(width = 6, plotOutput(outputId = "t_profile")),
+                              column(width = 6, plotOutput(outputId = "s_profile"))
+                            ),
+                            fluidRow(
+                              column(width = 6, plotOutput(outputId = "c_profile")),
+                              column(width = 6, plotOutput(outputId = "o_profile"))
+                            ),
+                            hr(),
+                            h3('Time series plot'),
+                            h6('Click on any point below and the the data will be displayed below the plot'),
+                            plotOutput(outputId = "ts_plot", click = "plot_click"),
+                            verbatimTextOutput("info"),
+                            hr(),
+                            h3('Climatology plot'),
+                            h6('Click on any point below and the the data will be displayed below the plot'),
+                            plotOutput(outputId = "boxplot", click = "plot_click2"),
+                            verbatimTextOutput("info2"),
+                            hr()
+                            # h3('Data table'),
+                            # tableOutput("table")
+                          )
+                        )), 
+               tabPanel("Feedback",
+                        titlePanel("Feedback"),
+                        # textInput("name", "Name (optional)", ""),
+                        # textInput("email", "Email (optional)", ""),
+                        # textInput("feedback", "Please provide comments, concerns, or errors",
+                        #           placeholder = 'Type response here'),
+                        # actionButton("submit", "Submit", class = "btn-primary"))
+                        helpText(a("Click Here if Google Form is not displayed below to submit a comment, question, concern, or report an error",
+                                   href="https://docs.google.com/forms/d/e/1FAIpQLSdpXTKQ1uZC-bjYZ-E6wO8Z43GgCf0OSV5WNPglQrY2_TKqmQ/viewform?usp=sf_link")),
+                        HTML('<iframe src="https://docs.google.com/forms/d/e/1FAIpQLSdpXTKQ1uZC-bjYZ-E6wO8Z43GgCf0OSV5WNPglQrY2_TKqmQ/viewform?embedded=true" width="640" height="729" frameborder="0" marginheight="0" marginwidth="0">Loading…</iframe>')
+               ),
+               tabPanel("Disclaimer",
+                        titlePanel('Disclaimer'),
+                        h5('The data presented here is subject to further review and quality control. The data may be used for informational purposes and is not intended for legal use, since it may contain inaccuracies. Neither the data Contributor, CIMAS, NOAA, nor the United States Government, nor any of their employees or contractors, makes any warranty, express or implied, including warranties of merchantability and fitness for a particular purpose, or assumes any legal liability for the accuracy, completeness, or usefulness, of this information.')
+               )
   )
 )
 
@@ -270,7 +286,8 @@ server <- function(input, output, session) {
       addLegend(position = "topright",
                 pal = os,
                 values = values,
-                title = title)
+                title = title,
+                opacity = 1)
   })
   
   # output$table <- renderTable({
