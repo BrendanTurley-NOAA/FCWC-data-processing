@@ -10,12 +10,13 @@ library(leaflet)
 library(lubridate)
 library(shiny)
 
-files_wd <- '~/Desktop/professional/projects/Postdoc_FL/data/FCWC/processed'
-setwd(files_wd)
-interp <- read.csv('aquatroll_data_interp.csv')
+# files_wd <- '~/Desktop/professional/projects/Postdoc_FL/data/FCWC/processed'
+# setwd(files_wd)
+# interp <- read.csv('aquatroll_data_interp.csv')
 # data <- read.csv('all_report_shiny3.csv')
 files_wd <- '~/Documents/R/Github/FCWC-data-processing/R_code/shiny_app/'
 setwd(files_wd)
+interp <- read.csv('data/aquatroll_data_interp.csv')
 data <- read.csv('data/all_report_shiny3.csv')
 data$Date <- ymd_hms(data$Date)
 min.Date <- as.Date(min(data$Date))
