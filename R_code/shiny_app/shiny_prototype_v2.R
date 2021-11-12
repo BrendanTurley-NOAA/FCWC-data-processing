@@ -42,6 +42,8 @@ o_cols <- c(ox.col1(length(o_breaks[o_breaks<2])),
             ox.col2(length(o_breaks[o_breaks>=2 & o_breaks<3.5])),
             ox.col3(length(o_breaks[o_breaks>=3.5])-1))
 
+
+### ------------ ui ------------
 ui <- fluidPage(
   titlePanel("FCWC Data Explorer"),
   
@@ -87,7 +89,7 @@ ui <- fluidPage(
 )
 
 
-
+### ------------ server ------------ 
 server <- function(input, output, session) {
   
   out <- reactive({
@@ -318,7 +320,6 @@ server <- function(input, output, session) {
   })
   
   output$map_marker_click <- renderText({
-    ### this function can be used to plot out profiles when clicked on map; but needs interpolated data.frame too
     details <- unlist(out()[which(out()$Latitude==input$map_marker_click$lat &
                                     out()$Longitude==input$map_marker_click$lng),])[6:9]
     paste('Surface Temperature (C):',round(as.numeric(details[1]),2),
@@ -391,4 +392,5 @@ server <- function(input, output, session) {
 }
 
 
+### ------------ run app ------------ 
 shinyApp(ui, server)
