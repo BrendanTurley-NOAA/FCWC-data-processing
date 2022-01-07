@@ -549,12 +549,13 @@ bottom_finder <- function(longitudes, # vector of longitudes
 ###--------- creates breaks for color palettes
 breaks <- function(x, # vector of values to calculate breaks
                    int, # number: increment of the sequence
-                   decimal = F # decimal is good for chlorophyll or other values logarithmic space
+                   decimal = F, # decimal is good for chlorophyll or other values logarithmic space
+                   round_digits = 2 # if decimal, what number of decimal places
 )
 {
   r_range <- range(x,na.rm=T)
   if(decimal){ ### decimal is good for chlorophyll or other values logarithmic space
-    seqs <- seq(round(r_range[1],2),round(r_range[2],2),by=int)
+    seqs <- seq(round(r_range[1],round_digits),round(r_range[2],round_digits),by=int)
   } else {
     seqs <- seq(floor(r_range[1]),ceiling(r_range[2]),by=int)  
   }
