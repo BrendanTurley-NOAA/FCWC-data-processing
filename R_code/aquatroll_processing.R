@@ -162,6 +162,8 @@ summary_aquatroll <- function(input, # htm or csv file that contains the raw aqu
   }
   ### max depth
   z_max <- max(D[,grep('depth',columns,ignore.case = T)],na.rm=T)
+  ### min oxygen
+  do_min <- min(D[,grep('RDO Concentration',columns,ignore.case = T)],na.rm=T)
   ### is there data dropout
   if(ignore.marked==T){
     M <- D[,-grep('marked',columns,ignore.case = T)]
@@ -191,6 +193,7 @@ summary_aquatroll <- function(input, # htm or csv file that contains the raw aqu
                     t_duration_sec=duration_total,
                     d_duration_sec=duration_down,
                     z_max_m=z_max,
+                    do_min=do_min,
                     dz_dt=dz_dt,
                     lon_dd=lon_avg,
                     lat_dd=lat_avg,
@@ -308,6 +311,7 @@ data_extract_aquatroll <- function(input # htm or csv file that contains the raw
 ###--------- interp_aquatroll
 interp_aquatroll <- function (input, # input file is the output data.frame from data_extract_aquatroll function
                               parms = c('temperature','salinity','chlorophyll','oxygen'), # parameters that you want to extract, smooth, and interpolate
+                              shallow = F, # True if inshore or less than 3 meters of water; makes the interpolation more reasonable
                               z_min = 2, # depth cutoff to start interpolation, typically there is a soak period at the surface where readings are unreliable
                               spar = .6, # smoothing parameter for smooth.spline before interpolation; values 0:1 with higher values are more smooth
                               resolution = 1, # resolution in meters of the interpolation
@@ -401,7 +405,8 @@ interp_aquatroll <- function (input, # input file is the output data.frame from 
   row_end <- which.max(input$Depth)
   input <- input[1:row_end,]
   
-  # filter out surface entries (< 2 m), except row immediately before
+  # filter out surface entries (< user set threshold), except row immediately before
+  z_min <- ifelse(min(input$Depth,na.rm=T)>z_min,min(input$Depth,na.rm=T),z_min)
   ind_lt2m <- which(input$Depth < z_min)
   if (length(ind_lt2m) > 0){
     row_beg <- max(ind_lt2m) - 1
@@ -432,12 +437,16 @@ interp_aquatroll <- function (input, # input file is the output data.frame from 
   # ### experimental
   
   ### smooth, bin, and plot
-  if(nrow(input)<3 | max(input$Depth)<=4){
+  if(nrow(input)<3 | max(input$Depth)<=0){
     warning('\n\n not enough data \n\n')
     return(NULL)
   } else {
     ### interpolate data to smooth
-    breaks <- seq(0,ceiling(max(input$Depth)),resolution)
+    if(shallow==T){ ### added 20220616 for shallow casts
+      breaks <- seq(0,round(max(input$Depth),1)+resolution,resolution)
+    } else {
+      breaks <- seq(0,ceiling(max(input$Depth)),resolution) 
+    }
     # z_cuts <- cut(input$Depth,breaks=breaks+.5)
     # levels(z_cuts) <- breaks[2:length(breaks)]
     
@@ -475,12 +484,14 @@ interp_aquatroll <- function (input, # input file is the output data.frame from 
       }
       if(all(!is.na(input[,ind]))){ ### if no NAs, smooth and bin data
         temp_rm <- smooth.spline(input$Depth,input[,ind],spar=spar)
-        z_cuts <- cut(temp_rm$x,breaks=breaks+.5)
+        # z_cuts <- cut(temp_rm$x,breaks=breaks+.5)
+        z_cuts <- cut(temp_rm$x,breaks=breaks) # 20220616; modified for shallow waters, adding .5 unnecessary
         levels(z_cuts) <- breaks[2:length(breaks)]
         temp_agg <- aggregate(temp_rm$y,by=list(z_cuts),mean)
         # temp_agg <- aggregate(input[,ind],by=list(z_cuts),mean) ### jsut bin instead of smooth; depreciated
         names(temp_agg) <- c('depths','values')
-        temp_agg$depths <- as.numeric(temp_agg$depths)
+        # temp_agg$depths <- as.numeric(temp_agg$depths)
+        temp_agg$depths <- as.numeric(paste(temp_agg$depths)) ### incorrectly converting factor into numeric; 2022/06/16
         temp_int <- approx(temp_agg$depths,temp_agg$values,xout=breaks,ties=mean)
       } else { ### if still NAs, then add -999 and error code for ploting
         temp_int <- data.frame(x=breaks,y=-999)
