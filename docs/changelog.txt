@@ -1,3 +1,6 @@
+2022-08-23  Brendan Turley
+- qaqc_automation_vs.R: updating QAQC code to be more flexible
+
 2021-10-19  Brendan Turley
 - shiny_prototype.R: wokring on Shiny app to display data
 
