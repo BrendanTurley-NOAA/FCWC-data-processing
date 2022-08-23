@@ -108,13 +108,14 @@ location_test(lon,lat)
 ### qartod: in-situ temperature and salinity data
 
 
-# Test 4) Gross Range Test - find sensor ranges https://in-situ.com/pub/media/support/documents/AquaTROLL600_Spec-Sheet.pdf
+# Test 4) Gross Range Test
 
 
 temp <- tmp$Temperature...C..AT
 data <- temp
 
 gross_range <- function(data, parameter = c('temperature','conductivity','salinity','dissolved_oxygen')){
+  ### sensor ranges https://in-situ.com/pub/media/support/documents/AquaTROLL600_Spec-Sheet.pdf
   at_temp_C_sensor_range = c(-5, 50)
   at_cond_uScm_sensor_range = c(0, 350000)
   at_sal_psu_sensor_range = c(0, 350)
