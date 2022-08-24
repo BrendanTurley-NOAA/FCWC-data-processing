@@ -69,9 +69,11 @@ timing_gap_test(tmp$Date.Time)
 
 lon <- tmp$Longitude....
 lat <- tmp$Latitude....
-threshold <- 20/111000 # approx 20 m
+threshold <- 20 # approx 20 m
 
-location_test <- function(longitude, latitude, threshold = 20/111000){
+location_test <- function(longitude, latitude, threshold = 20){
+  ### threshold in meters; convert to degrees longitude
+  threhold <- threshold/111000
   flags <- matrix(1,length(longitude),2)
   ### unlikely displacement
   lon_diff <- abs(diff(lon))>threshold
@@ -82,7 +84,7 @@ location_test <- function(longitude, latitude, threshold = 20/111000){
   if(any(lat_diff==T,na.rm=T)){
     flags[which(lat_diff),2] <- 3
   }
-  ### impossible locations; supercedes unlikely displacement
+  ### impossible locations; supersedes unlikely displacement
   lon_f2 <- which(abs(lon)>180)
   lat_f2 <- which(abs(lat)>90)
   if(length(lon_f2)>0){
@@ -109,37 +111,108 @@ location_test(lon,lat)
 
 
 # Test 4) Gross Range Test
-
-
 temp <- tmp$Temperature...C..AT
 data <- temp
 
-gross_range <- function(data, parameter = c('temperature','conductivity','salinity','dissolved_oxygen')){
+gross_range <- function(data, parameter = c('temperature','conductivity','salinity','oxygen')){
   ### sensor ranges https://in-situ.com/pub/media/support/documents/AquaTROLL600_Spec-Sheet.pdf
   at_temp_C_sensor_range = c(-5, 50)
   at_cond_uScm_sensor_range = c(0, 350000)
   at_sal_psu_sensor_range = c(0, 350)
-  at_do_mgl_sensor_range = c(0, 20)
+  at_oxy_mgl_sensor_range = c(0, 20)
   
   flags <- rep(1,length(data))
-  if(parameter=='temperature'){
-    ind <- (data<at_temp_C_sensor_range[1] | data>at_temp_C_sensor_range[2])
-  }
-  if(parameter=='conductivity'){
-    ind <- (data<at_cond_uScm_sensor_range[1] | data>at_cond_uScm_sensor_range[2])
-  }
-  if(parameter=='salinity'){
-    ind <- (data<at_sal_psu_sensor_range[1] | data>at_sal_psu_sensor_range[2])
-  }
-  if(parameter=='dissolved_oxygen'){ ### check QARTOD QA/QC manual on DO
-    ind <- (data<at_do_mgl_sensor_range[1] | data>at_do_mgl_sensor_range[2])
-  }
+  sensor_range <- switch(parameter,
+                         'temperature' = at_temp_C_sensor_range,
+                         'conductivity' = at_cond_uScm_sensor_range,
+                         'salinity' = at_sal_psu_sensor_range,
+                         'oxygen' = at_oxy_mgl_sensor_range)
+  ind <- (data<sensor_range[1] | data>sensor_range[2])
+  # if(parameter=='temperature'){
+  #   ind <- (data<at_temp_C_sensor_range[1] | data>at_temp_C_sensor_range[2])
+  # }
+  # if(parameter=='conductivity'){
+  #   ind <- (data<at_cond_uScm_sensor_range[1] | data>at_cond_uScm_sensor_range[2])
+  # }
+  # if(parameter=='salinity'){
+  #   ind <- (data<at_sal_psu_sensor_range[1] | data>at_sal_psu_sensor_range[2])
+  # }
+  # if(parameter=='oxygen'){ ### check QARTOD QA/QC manual on DO
+  #   ind <- (data<at_oxy_mgl_sensor_range[1] | data>at_oxy_mgl_sensor_range[2])
+  # }
   if(any(ind==T)){
     flags[ind] <- 4
+  }
+  if(any(is.na(data))){
+    flags[is.na(data)] <- 9
   }
   return(flags)
 }
 
 gross_range(temp,'temperature')
 gross_range(temp)
+
+
+# Test 5) Climatological Test
+# Because of the dynamic nature of T and S in some locations, no fail flag is identified for this test.
+# only possible values = 1 or 3  or 9
+
+
+
+# Test 6) Spike Test
+# method as coded here is similar to rate of change test; differs from QARTOD methods slightly by combining spike and rate of change
+
+temp <- tmp$Temperature...C..AT
+data <- temp
+
+
+spike_test <- function(data, spk_high = 5, spk_low = 3){
+  flags <- rep(1,length(data))
+  threshold_high <- spk_high*sd(data,na.rm=T)
+  threshold_low <- spk_low*sd(data,na.rm=T)
+  for(i in 2:(length(data)-1)){
+    spk_test <- data[i]
+    spk_ref <- mean(data[c((i-1),(i+1))],na.rm=T)
+    if(abs(spk_test-spk_ref)>threshold_high){
+      flags[i] <- 4
+    } else if (abs(spk_test-spk_ref)>threshold_low &
+               abs(spk_test-spk_ref)<=threshold_high){
+      flags[i] <- 3
+    }
+  }
+  if(any(is.na(data))){
+    flags[is.na(data)] <- 9
+  }
+  return(flags)
+}
+
+
+spike_test(temp)
+
+
+# Test 7) Rate of Change Test
+
+temp <- tmp$Temperature...C..AT
+data <- temp
+
+rate_change_test <- function(data, threshold = 3){
+  flags <- rep(1,length(data))
+  threshold <- threshold*sd(data,na.rm=T)
+  for(i in 1:(length(data)-1)){
+    if(abs(data[i]-data[(i+1)])>threshold &
+       flags[i]==1){
+      flags[i] <- 3
+    }
+  }
+  if(any(is.na(data))){
+    flags[is.na(data)] <- 9
+  }
+  return(flags)
+}
+
+rate_change_test(data)
+
+
+
+# Test 8) Flat Line Test
 
