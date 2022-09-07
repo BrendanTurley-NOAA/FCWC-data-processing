@@ -13,7 +13,7 @@ The original files are directly uploaded to GoogleDrive by the [VuSitu App](http
 * **breaks** makes handy breaks for color palettes
 * **running** calculates a moving linear regression slope and moving average
 
-Code to automate QA/QC is under development using guidelines outlined by the IOOS Quality Assurance / Quality Control of Real Time Oceanogrphic Data ([QARTOD](https://ioos.noaa.gov/project/qartod/)). The **summary_aquatroll** function will return missing parameters from a list of expected parameters and a list of parameters that dropped out. Drop out is when the parameter has some measurements but not for the whole time the unit was recording. This can happen when there is a bad connection or other sensor failure. If this happens, it is recommended that In-Situ technical support be contacted for further help.
+Code to automate QA/QC is under development using guidelines outlined by the IOOS Quality Assurance / Quality Control of Real Time Oceanographic Data ([QARTOD](https://ioos.noaa.gov/project/qartod/)). The **summary_aquatroll** function will return missing parameters from a list of expected parameters and a list of parameters that dropped out. Drop out is when the parameter has some measurements but not for the whole time the unit was recording. This can happen when there is a bad connection or other sensor failure. If this happens, it is recommended that In-Situ technical support be contacted for further help.
 
 
 ---
