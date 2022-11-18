@@ -392,6 +392,9 @@ interp_aquatroll <- function (input, # input file is the output data.frame from 
             immediate. = T)
   }
   
+  ### save serial number
+  aquatroll_sn <- input[1,grep('aquatroll_sn',names(input))]
+  
   ### convert feet to meters
   if(unique(input[grep('unit',names(input))])=='(ft)'){
     input$Depth <- NISTftTOmeter(input$Depth)
@@ -573,6 +576,8 @@ interp_aquatroll <- function (input, # input file is the output data.frame from 
               outer=T,side=3,at=.05,adj=0)
         mtext(paste('Input file:',input[1,grep('input',columns)]),
               outer=T,side=3,line=-1,at=.05,adj=0)
+        mtext(paste('AquaTroll Serial number:',aquatroll_sn),
+              outer=T,side=3,adj=1)
       }
       if(er){ ### plot if NAs error and no smoothing/binning
         mtext('NAs approx error',col='red')

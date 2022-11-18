@@ -1,3 +1,6 @@
+2022-11-18  Brendan Turley
+- updated input data headers; In-Situ changed the salinity units; add serial number or aquatroll_interp output plots
+
 2022-08-23  Brendan Turley
 - qaqc_automation_vs.R: updating QAQC code to be more flexible
 
