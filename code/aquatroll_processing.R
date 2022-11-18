@@ -36,7 +36,7 @@ rm(r)
 
 ###--------- aquatroll_fields
 ### just a list of standard parameters reported in aquatroll htm files
-aquatroll_fields <- function(){
+aquatroll_fields_v1 <- function(){
   c("Date Time",
     "Salinity (ppt)",
     "Temperature (°C) AT",
@@ -62,36 +62,90 @@ aquatroll_fields <- function(){
     "Marked")
 }
 
+aquatroll_fields_v2 <- function(){ # newer sensors report salinity as PSU; updated 2022/11/18
+  c("Date Time",
+    "Salinity (PSU)",
+    "Temperature (°C) AT",
+    "Depth",
+    "Pressure (psi)",
+    "Actual Conductivity (µS/cm)",
+    "Specific Conductivity (µS/cm)",
+    "Total Dissolved Solids (ppt)",
+    "Resistivity (Ω⋅cm)",
+    "Density (g/cm³)",
+    "Barometric Pressure (mm Hg)",
+    "RDO Concentration (mg/L)",
+    "RDO Saturation (%Sat)",
+    "Oxygen Partial Pressure (Torr)",
+    "Chlorophyll-a Fluorescence (RFU)",
+    "Chlorophyll-a Concentration (µg/L)",
+    "Battery Capacity (%)",
+    "External Voltage (V)",
+    "Barometric Pressure (mbar)",
+    "Temperature (°C) HH",
+    "Latitude (°)",
+    "Longitude (°)",
+    "Marked")
+}
+
+###--------- check_headers
+check_headers <- function(input # htm or csv file that contains the raw aquatroll output
+)
+{
+  if(file_ext(input)!='csv' & file_ext(input)!='htm'){
+    warning(paste('\n\n File format needs to be csv or htm! \n\n'),
+            immediate. = T)
+  }
+  if(file_ext(input)=='csv'){
+    D <- readLines(input)
+    # get header row of data
+    ind <- grep('Date Time',D)
+    # extract data
+    D <- read_csv(input,skip=ind-1,col_types = cols())
+    columns <- names(D)
+  }
+  if(file_ext(input)=='htm'){
+    H <- read_html(input) %>%
+      html_table(fill = T) %>%
+      .[[1]]
+    # get header row of data
+    row_d <- which(H[,1] == "Date Time")
+    columns <- H[row_d,]
+  }
+  gsub(" \\([0-9]+\\)", "", columns)
+}
+
 
 ###--------- summary_aquatroll
 summary_aquatroll <- function(input, # htm or csv file that contains the raw aquatroll output
-                              ignore.marked = T # TRUE will ignore the marked column from being exported in the output
+                              ignore.marked = T, # TRUE will ignore the marked column from being exported in the output
+                              flds_req = aquatroll_fields_v2() # fields required for exporting raw data; default to newer set (2022/11/18)
 )
 {
-  ### fields required for exporting raw data
-  flds_req <- c("Date Time",
-                "Salinity (ppt)",
-                "Temperature (°C) AT",
-                "Depth",
-                "Pressure (psi)",
-                "Actual Conductivity (µS/cm)",
-                "Specific Conductivity (µS/cm)",
-                "Total Dissolved Solids (ppt)",
-                "Resistivity (Ω⋅cm)",
-                "Density (g/cm³)",
-                "Barometric Pressure (mm Hg)",
-                "RDO Concentration (mg/L)",
-                "RDO Saturation (%Sat)",
-                "Oxygen Partial Pressure (Torr)",
-                "Chlorophyll-a Fluorescence (RFU)",
-                "Chlorophyll-a Concentration (µg/L)",
-                "Battery Capacity (%)",
-                "External Voltage (V)",
-                "Barometric Pressure (mbar)",
-                "Temperature (°C) HH",
-                "Latitude (°)",
-                "Longitude (°)",
-                "Marked")
+  # ### fields required for exporting raw data 
+  # flds_req <- c("Date Time",
+  #               "Salinity (ppt)",
+  #               "Temperature (°C) AT",
+  #               "Depth",
+  #               "Pressure (psi)",
+  #               "Actual Conductivity (µS/cm)",
+  #               "Specific Conductivity (µS/cm)",
+  #               "Total Dissolved Solids (ppt)",
+  #               "Resistivity (Ω⋅cm)",
+  #               "Density (g/cm³)",
+  #               "Barometric Pressure (mm Hg)",
+  #               "RDO Concentration (mg/L)",
+  #               "RDO Saturation (%Sat)",
+  #               "Oxygen Partial Pressure (Torr)",
+  #               "Chlorophyll-a Fluorescence (RFU)",
+  #               "Chlorophyll-a Concentration (µg/L)",
+  #               "Battery Capacity (%)",
+  #               "External Voltage (V)",
+  #               "Barometric Pressure (mbar)",
+  #               "Temperature (°C) HH",
+  #               "Latitude (°)",
+  #               "Longitude (°)",
+  #               "Marked")
   
   if(file_ext(input)!='csv' & file_ext(input)!='htm'){
     warning(paste('\n\n File format needs to be csv or htm! \n\n'),
@@ -204,33 +258,34 @@ summary_aquatroll <- function(input, # htm or csv file that contains the raw aqu
 
 
 ###--------- data_extract_aquatroll
-data_extract_aquatroll <- function(input # htm or csv file that contains the raw aquatroll output
+data_extract_aquatroll <- function(input, # htm or csv file that contains the raw aquatroll output
+                                   flds_req = aquatroll_fields_v2() # fields required for exporting raw data; default to newer set (2022/11/18)
 )
 {
-  ### fields required for exporting raw data
-  flds_req <- c("Date Time",
-                "Salinity (ppt)",
-                "Temperature (°C) AT",
-                "Depth",
-                "Pressure (psi)",
-                "Actual Conductivity (µS/cm)",
-                "Specific Conductivity (µS/cm)",
-                "Total Dissolved Solids (ppt)",
-                "Resistivity (Ω⋅cm)",
-                "Density (g/cm³)",
-                "Barometric Pressure (mm Hg)",
-                "RDO Concentration (mg/L)",
-                "RDO Saturation (%Sat)",
-                "Oxygen Partial Pressure (Torr)",
-                "Chlorophyll-a Fluorescence (RFU)",
-                "Chlorophyll-a Concentration (µg/L)",
-                "Battery Capacity (%)",
-                "External Voltage (V)",
-                "Barometric Pressure (mbar)",
-                "Temperature (°C) HH",
-                "Latitude (°)",
-                "Longitude (°)",
-                "Marked")
+  # ### fields required for exporting raw data
+  # flds_req <- c("Date Time",
+  #               "Salinity (ppt)",
+  #               "Temperature (°C) AT",
+  #               "Depth",
+  #               "Pressure (psi)",
+  #               "Actual Conductivity (µS/cm)",
+  #               "Specific Conductivity (µS/cm)",
+  #               "Total Dissolved Solids (ppt)",
+  #               "Resistivity (Ω⋅cm)",
+  #               "Density (g/cm³)",
+  #               "Barometric Pressure (mm Hg)",
+  #               "RDO Concentration (mg/L)",
+  #               "RDO Saturation (%Sat)",
+  #               "Oxygen Partial Pressure (Torr)",
+  #               "Chlorophyll-a Fluorescence (RFU)",
+  #               "Chlorophyll-a Concentration (µg/L)",
+  #               "Battery Capacity (%)",
+  #               "External Voltage (V)",
+  #               "Barometric Pressure (mbar)",
+  #               "Temperature (°C) HH",
+  #               "Latitude (°)",
+  #               "Longitude (°)",
+  #               "Marked")
   
   if(file_ext(input)!='csv' & file_ext(input)!='htm'){
     warning(paste('\n\n File format needs to be csv or htm! \n\n'),
