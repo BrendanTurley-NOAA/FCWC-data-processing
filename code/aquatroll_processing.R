@@ -116,6 +116,48 @@ check_headers <- function(input # htm or csv file that contains the raw aquatrol
 }
 
 
+###--------- look_aquatroll
+look_aquatroll <- function(input # htm or csv file that contains the raw aquatroll output
+)
+{
+  if(file_ext(input)!='csv' & file_ext(input)!='htm'){
+    warning(paste('\n\n File format needs to be csv or htm! \n\n'),
+            immediate. = T)
+  }
+  if(file_ext(input)=='csv'){
+    D <- readLines(input)
+    # get header row of data
+    ind <- grep('Date Time',D)
+    # extract data
+    D <- read_csv(input,skip=ind-1,col_types = cols())
+    columns <- names(D)
+    H <- read.csv(input,header=F,nrows=ind-1)
+  }
+  if(file_ext(input)=='htm'){
+    H <- read_html(input) %>%
+      html_table(fill = T) %>%
+      .[[1]]
+    # get header row of data
+    row_d <- which(H[,1] == "Date Time")
+    columns <- H[row_d,]
+    # extract data
+    D <- H[(row_d+1):nrow(H),]
+    names(D) <- as.character(columns)
+  }
+  H <- data.frame(H)
+  D <- data.frame(D)
+  D[2:(ncol(D)-1)] <- lapply(D[2:(ncol(D)-1)],as.numeric)
+  names(D) <- gsub(" \\([0-9]+\\)", "", columns)
+  ### return serial numbers for sensors
+  serials <- as.numeric(gsub(".*?([0-9]+).*", "\\1", columns))
+  
+  out <- list(data = D,
+              serials = serials)
+  
+  return(out)
+}
+
+
 ###--------- summary_aquatroll
 summary_aquatroll <- function(input, # htm or csv file that contains the raw aquatroll output
                               ignore.marked = T, # TRUE will ignore the marked column from being exported in the output
