@@ -585,7 +585,8 @@ interp_aquatroll <- function (input, # input file is the output data.frame from 
       if(all(!is.na(input[,ind]))){ ### if no NAs, smooth and bin data
         temp_rm <- smooth.spline(input$Depth,input[,ind],spar=spar)
         # z_cuts <- cut(temp_rm$x,breaks=breaks+.5)
-        z_cuts <- cut(temp_rm$x,breaks=breaks) # 20220616; modified for shallow waters, adding .5 unnecessary
+        # z_cuts <- cut(temp_rm$x,breaks=breaks) # 20220616; modified for shallow waters, adding .5 unnecessary
+        z_cuts <- cut(temp_rm$x,breaks=breaks+(resolution/2)) # add offset to center boxcar average
         levels(z_cuts) <- breaks[2:length(breaks)]
         temp_agg <- aggregate(temp_rm$y,by=list(z_cuts),mean)
         # temp_agg <- aggregate(input[,ind],by=list(z_cuts),mean) ### jsut bin instead of smooth; depreciated
