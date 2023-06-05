@@ -717,3 +717,21 @@ running  <- function (x, # x vector used to calculate slope and mean
   }
   return(data.frame(slope=y.t,r.mean=y.t4))
 }
+
+
+
+###--------- which_xy
+which_xy <- function(report,serial){
+  report_out <- report[which(report$aquatroll_sn==serial),]
+  lon_m <- mean(abs(diff(report_out$lon_dd)))
+  lat_m <- mean(abs(diff(report_out$lat_dd)))
+  res <- ifelse(lon_m>lat_m,'lon_dd','lat_dd')
+  return(res)
+}
+
+
+###--------- check_neg
+check_neg <- function(x){
+  ifelse(x<0,0,x)
+}
+
