@@ -735,3 +735,13 @@ check_neg <- function(x){
   ifelse(x<0,0,x)
 }
 
+
+###--------- depth_neg
+depth_neg <- function(depth){
+  if(all(depth>0)){
+    -depth
+  } else {
+    depth
+  }
+}
+
