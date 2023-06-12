@@ -409,7 +409,7 @@ data_extract_aquatroll <- function(input, # htm or csv file that contains the ra
 interp_aquatroll <- function (input, # input file is the output data.frame from data_extract_aquatroll function
                               parms = c('temperature','salinity','chlorophyll','oxygen'), # parameters that you want to extract, smooth, and interpolate
                               shallow = F, # True if inshore or less than 3 meters of water; makes the interpolation more reasonable
-                              downcast = F,
+                              downcast = T,
                               z_min = 2, # depth cutoff to start interpolation, typically there is a soak period at the surface where readings are unreliable
                               spar = .6, # smoothing parameter for smooth.spline before interpolation; values 0:1 with higher values are more smooth
                               resolution = 1, # resolution in meters of the interpolation
