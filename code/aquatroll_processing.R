@@ -409,6 +409,7 @@ data_extract_aquatroll <- function(input, # htm or csv file that contains the ra
 interp_aquatroll <- function (input, # input file is the output data.frame from data_extract_aquatroll function
                               parms = c('temperature','salinity','chlorophyll','oxygen'), # parameters that you want to extract, smooth, and interpolate
                               shallow = F, # True if inshore or less than 3 meters of water; makes the interpolation more reasonable
+                              downcast = F,
                               z_min = 2, # depth cutoff to start interpolation, typically there is a soak period at the surface where readings are unreliable
                               spar = .6, # smoothing parameter for smooth.spline before interpolation; values 0:1 with higher values are more smooth
                               resolution = 1, # resolution in meters of the interpolation
@@ -503,38 +504,29 @@ interp_aquatroll <- function (input, # input file is the output data.frame from 
   
   # filter for downcast (not up)
   row_end <- which.max(input$Depth)
-  input <- input[1:row_end,]
   
-  # filter out surface entries (< user set threshold), except row immediately before
-  z_min <- ifelse(min(input$Depth,na.rm=T)>z_min,min(input$Depth,na.rm=T),z_min)
-  ind_lt2m <- which(input$Depth < z_min)
-  if (length(ind_lt2m) > 0){
-    row_beg <- max(ind_lt2m) - 1
-    input <- input[row_beg:nrow(input),]
+  if(downcast==T){
+    input <- input[1:row_end,]
+    
+    # filter out surface entries (< user set threshold), except row immediately before
+    z_min <- ifelse(min(input$Depth, na.rm=T) > z_min, min(input$Depth, na.rm=T), z_min)
+    ind_lt2m <- which(input$Depth < z_min)
+    if (length(ind_lt2m) > 0){
+      row_beg <- max(ind_lt2m) - 1
+      input <- input[row_beg:nrow(input),]
+    }
   }
   
-  # #### experimental
-  # ###--------> future improvment: to retain upcast and use if downcast is unacceptable or merge up and downcast
-  # # filter for downcast (not up)
-  # row_end <- which.max(input$Depth)
-  # downcast <- input[1:row_end,]
-  # upcast <- input[row_end:nrow(input),]
-  # 
-  # # filter out surface entries (< 2 m), except row immediately before
-  # ind_lt2m <- which(downcast$Depth < z_min)
-  # if (length(ind_lt2m) > 0){
-  #   row_beg <- max(ind_lt2m) - 1
-  #   downcast <- downcast[row_beg:nrow(downcast),]
-  # }
-  # 
-  # if(nrow(downcast)>3){
-  #   inputs <- downcast
-  # } else if (nrow(upcast)>3){
-  #   inputs <- upcast
-  # } else {
-  #   inputs <- downcast
-  # }
-  # ### experimental
+  if(downcast==F){
+    input <- input[row_end:nrow(input),]
+    
+    # filter out surface entries (< 2 m), except row immediately before
+    ind_lt2m <- which(input$Depth < 0)
+    if (length(ind_lt2m) > 0){
+      row_end <- max(ind_lt2m)
+      input <- input[1:row_end,]
+    }
+  }
   
   ### smooth, bin, and plot
   if(nrow(input)<3 | max(input$Depth)<=0){
