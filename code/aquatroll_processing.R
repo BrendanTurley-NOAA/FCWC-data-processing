@@ -409,7 +409,8 @@ data_extract_aquatroll <- function(input, # htm or csv file that contains the ra
 interp_aquatroll <- function (input, # input file is the output data.frame from data_extract_aquatroll function
                               parms = c('temperature','salinity','chlorophyll','oxygen'), # parameters that you want to extract, smooth, and interpolate
                               shallow = F, # True if inshore or less than 3 meters of water; makes the interpolation more reasonable
-                              downcast = T,
+                              downcast = F, # use downcast, if False, upcast is used
+                              sal_calc = T, # calculate practical salinity from conductivity; consistent with Walton Smith data reported as practical salinity
                               z_min = 2, # depth cutoff to start interpolation, typically there is a soak period at the surface where readings are unreliable
                               spar = .6, # smoothing parameter for smooth.spline before interpolation; values 0:1 with higher values are more smooth
                               resolution = 1, # resolution in meters of the interpolation
@@ -459,6 +460,17 @@ interp_aquatroll <- function (input, # input file is the output data.frame from 
                         input[,grep('temperature',columns,ignore.case = T)[1]],
                         pressure_dbar)
     input[,grep('salinity',columns,ignore.case = T)] <- gsw_SA_from_SP(SP, pressure_dbar, lon, lat)
+  }
+  
+  ### calculate salinity
+  if(sal_calc==T){
+    lat <- ifelse(is.na(mean(input[,grep('latitude',columns,ignore.case = T)],na.rm=T)),27,mean(input[,grep('latitude',columns,ignore.case = T)],na.rm=T))
+    lon <- ifelse(is.na(mean(input[,grep('longitude',columns,ignore.case = T)],na.rm=T)),-82,mean(input[,grep('longitude',columns,ignore.case = T)],na.rm=T))
+    pressure_dbar <- gsw_p_from_z(-input$Depth,lat)
+    SP <- gsw_SP_from_C(input[,grep('actual',columns,ignore.case = T)]/1000,
+                        input[,grep('temperature',columns,ignore.case = T)[1]],
+                        pressure_dbar)
+    input[,grep('salinity',columns,ignore.case = T)] <- SP
   }
   
   ### variables of interest
@@ -512,7 +524,7 @@ interp_aquatroll <- function (input, # input file is the output data.frame from 
     z_min <- ifelse(min(input$Depth, na.rm=T) > z_min, min(input$Depth, na.rm=T), z_min)
     ind_lt2m <- which(input$Depth < z_min)
     if (length(ind_lt2m) > 0){
-      row_beg <- max(ind_lt2m) - 1
+      row_beg <- max(ind_lt2m)
       input <- input[row_beg:nrow(input),]
     }
   }
