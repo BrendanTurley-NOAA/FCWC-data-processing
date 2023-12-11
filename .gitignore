@@ -5,3 +5,6 @@
 .Rhistory
 .RData
 .Ruserdata
+# files
+/data/temporary
+/figures/processed
