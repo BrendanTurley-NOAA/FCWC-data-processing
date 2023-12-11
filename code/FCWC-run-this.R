@@ -7,10 +7,12 @@ library(ncdf4)
 library(NISTunits)
 library(terra)
 
-source('~/Documents/R/Github/FCWC-data-processing/code/aquatroll_processing.R')
+# source('~/Documents/R/Github/FCWC-data-processing/code/aquatroll_processing.R')
+source('~/R_projects/FCWC-data-processing/code/aquatroll_processing.R')
 
 ### loading bathymetry
-setwd("~/Desktop/professional/biblioteca/data")
+# setwd("~/Desktop/professional/biblioteca/data")
+setwd('~/data/shapefiles')
 bathy <- nc_open('etopo1.nc')
 topo <- ncvar_get(bathy, 'Band1')
 topo_lat <- ncvar_get(bathy, 'lat')
@@ -20,14 +22,15 @@ nc_close(bathy)
 ### loading shape file for coastline
 # setwd("~/Desktop/professional/biblioteca/data/shapefiles/ne_10m_admin_0_countries")
 # world <- readOGR('ne_10m_admin_0_countries.shp')
-setwd("~/Desktop/professional/biblioteca/data/shapefiles/Florida_Shoreline__1_to_40%2C000_Scale_-shp")
-FL <- vect('Florida_Shoreline__1_to_40%2C000_Scale_.shp')
+# setwd("~/Desktop/professional/biblioteca/data/shapefiles/Florida_Shoreline__1_to_40%2C000_Scale_-shp")
+setwd('C:/Users/brendan.turley/Documents/data/shapefiles/shapefiles/Florida_Shoreline__1_to_40_2C000_Scale_-shp')
+FL <- vect('Florida_Shoreline__1_to_40_2C000_Scale_.shp')
 
-setwd('~/Desktop/fcwc')
+setwd('~/data/FCWC-data')
 files <- list.files()
 
 ### find htm files
-files_wd <- '~/Desktop/fcwc/121-20230903'
+files_wd <- '~/data/FCWC-data/154-20231206'
 setwd(files_wd)
 files <- list.files()
 ind <- grep('htm',files)
