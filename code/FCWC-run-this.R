@@ -26,11 +26,11 @@ nc_close(bathy)
 setwd('C:/Users/brendan.turley/Documents/data/shapefiles/shapefiles/Florida_Shoreline__1_to_40_2C000_Scale_-shp')
 FL <- vect('Florida_Shoreline__1_to_40_2C000_Scale_.shp')
 
-setwd('~/data/FCWC-data')
+setwd('~/R_projects/FCWC-data-processing/data/FCWC-data')
 files <- list.files()
 
 ### find htm files
-files_wd <- '~/data/FCWC-data/154-20231206'
+files_wd <- '~/R_projects/FCWC-data-processing/data/FCWC-data/154-20231206'
 setwd(files_wd)
 files <- list.files()
 ind <- grep('htm',files)
@@ -69,7 +69,7 @@ m <- 1
 n <- 0
 p_ind <- 1
 ### where to save output plots
-plot_wd <- paste0('~/Desktop/professional/projects/Postdoc_FL/figures')
+plot_wd <- paste0('~/R_projects/FCWC-data-processing/figures/processed')
 for(j in ind){
   # for(j in 26:30){
   setwd(files_wd)
