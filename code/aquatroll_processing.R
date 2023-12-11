@@ -533,7 +533,7 @@ interp_aquatroll <- function (input, # input file is the output data.frame from 
     input <- input[row_end:nrow(input),]
     
     # filter out surface entries (< 2 m), except row immediately before
-    ind_lt2m <- which(input$Depth < 0)
+    ind_lt2m <- which(input$Depth < z_min)
     if (length(ind_lt2m) > 0){
       row_end <- max(ind_lt2m)
       input <- input[1:row_end,]
@@ -547,9 +547,9 @@ interp_aquatroll <- function (input, # input file is the output data.frame from 
   } else {
     ### interpolate data to smooth
     if(shallow==T){ ### added 20220616 for shallow casts
-      breaks <- seq(0,round(max(input$Depth),1)+resolution,resolution)
+      breaks <- seq(z_min,round(max(input$Depth),1)+resolution,resolution)
     } else {
-      breaks <- seq(0,ceiling(max(input$Depth)),resolution) 
+      breaks <- seq(z_min,ceiling(max(input$Depth)),resolution) 
     }
     # z_cuts <- cut(input$Depth,breaks=breaks+.5)
     # levels(z_cuts) <- breaks[2:length(breaks)]
