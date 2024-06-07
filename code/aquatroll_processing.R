@@ -293,6 +293,7 @@ summary_aquatroll <- function(input, # htm or csv file that contains the raw aqu
                     dz_dt=dz_dt,
                     lon_dd=lon_avg,
                     lat_dd=lat_avg,
+                    z_units=depth_unit,
                     flds_miss=toString(flds_miss),
                     dropout=toString(dropout))
   return(out)

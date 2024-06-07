@@ -23,17 +23,19 @@ nc_close(bathy)
 # setwd("~/Desktop/professional/biblioteca/data/shapefiles/ne_10m_admin_0_countries")
 # world <- readOGR('ne_10m_admin_0_countries.shp')
 # setwd("~/Desktop/professional/biblioteca/data/shapefiles/Florida_Shoreline__1_to_40%2C000_Scale_-shp")
-setwd('C:/Users/brendan.turley/Documents/data/shapefiles/shapefiles/Florida_Shoreline__1_to_40_2C000_Scale_-shp')
+setwd("C:/Users/brendan.turley/Documents/data/shapefiles/Florida_Shoreline__1_to_40_2C000_Scale_-shp")
 FL <- vect('Florida_Shoreline__1_to_40_2C000_Scale_.shp')
 
-setwd('~/R_projects/FCWC-data-processing/data/FCWC-data')
+setwd("C:/Users/brendan.turley/Documents/data/fcwc/data")
 files <- list.files()
 
 ### find htm files
-files_wd <- '~/R_projects/FCWC-data-processing/data/FCWC-data/154-20231206'
+files_wd <- '~/data/fcwc/data'
 setwd(files_wd)
 files <- list.files()
-ind <- grep('htm',files)
+ind <- union(grep('htm', files),
+             grep('csv', files))
+# ind <- ind[1:4]
 dirs <- 'new'
 
 i <- files[1]
@@ -42,9 +44,8 @@ look_aquatroll(i)
 tmp_sum <- summary_aquatroll(i)
 data_extract_aquatroll(i)
 
-### loop through dirs to process htm files
-data_extracted <- data.frame(matrix(NA,1000,28))
-data_interp <- data.frame(matrix(NA,1000,11))
+
+### loop through files to parse test from science profiles
 report <- data.frame(input=rep(NA,1000),
                      date_utc=rep(force_tz(Sys.time(),'UTC'),1000),
                      aquatroll_sn=rep(NA,1000),
@@ -63,10 +64,6 @@ report <- data.frame(input=rep(NA,1000),
                      profile_index=rep(NA,1000))
 ### counters to keep track of output
 a <- 1
-k <- 1
-l <- 0
-m <- 1
-n <- 0
 p_ind <- 1
 ### where to save output plots
 plot_wd <- paste0('~/R_projects/FCWC-data-processing/figures/processed')
@@ -74,21 +71,64 @@ for(j in ind){
   # for(j in 26:30){
   setwd(files_wd)
   input <- files[j]
+  fields_vers <- ifelse(ymd(substr(input,8,17))<'2022-11-08',
+                        'aquatroll_fields_v1',
+                        'aquatroll_fields_v2')
   ### process input file
-  file_sum <- summary_aquatroll(input)
-  raw_d <- data_extract_aquatroll(input)
+  file_sum <- summary_aquatroll(input, 
+                                flds_req = eval(parse(text = paste0(fields_vers,'()'))))
+  ### save data
+  report[a,] <- cbind(file_sum,dirs,p_ind)
+  ### add one to counters to save data for next iteration
+  a <- a + 1
+  ### profile index +1
+  p_ind <- p_ind + 1
+}
+report <- report[!is.na(report$input),]
+report <- report[,c(16,15,1:14)]
+plot(report$lon_dd,report$lat_dd,asp=1)
+
+test_prof <- union(which(report$z_max_m<2),
+                   which(report$t_duration_sec<60))
+
+with(report[test_prof,],
+     plot(lon_dd,lat_dd))
+
+report$input[test_prof]
+
+sci_prof <- report$input[-test_prof]
+
+### loop through dirs to process htm files
+data_extracted <- data.frame(matrix(NA,1000,28))
+data_interp <- data.frame(matrix(NA,1000,11))
+### counters to keep track of output
+k <- 1
+l <- 0
+m <- 1
+n <- 0
+p_ind <- 1
+### where to save output plots
+plot_wd <- paste0('~/R_projects/FCWC-data-processing/figures/processed')
+for(j in 1:length(sci_prof)){
+  # for(j in 26:30){
+  setwd(files_wd)
+  input <- files[match(sci_prof[j], files)]
+  fields_vers <- ifelse(ymd(substr(input,8,17))<'2022-11-08',
+                        'aquatroll_fields_v1',
+                        'aquatroll_fields_v2')
+  ### process input file
+  raw_d <- data_extract_aquatroll(input,
+                                  flds_req = eval(parse(text = paste0(fields_vers,'()'))))
   interp_d <- interp_aquatroll(raw_d, 
                                set_wd = plot_wd, save_plot = T, 
                                downcast = T, sal_calc = T, 
-                               shallow = T, resolution = 1,
+                               shallow = F, resolution = 1,
                                z_min = 1)
   ### add number of rows to counters to save data
   l <- l + nrow(raw_d)
   ### save data
-  report[a,] <- cbind(file_sum,dirs,p_ind)
   data_extracted[k:l,] <- cbind(raw_d,dirs,p_ind)
   ### add one to counters to save data for next iteration
-  a <- a + 1
   k <- l + 1
   ### interpolated data is different
   if(length(interp_d)>1){
@@ -99,9 +139,6 @@ for(j in ind){
   ### profile index +1
   p_ind <- p_ind + 1
 }
-report <- report[!is.na(report$input),]
-report <- report[,c(16,15,1:14)]
-plot(report$lon_dd,report$lat_dd,asp=1)
 names(data_extracted) <- c("Date Time",
                            "Salinity (PSU)",
                            "Temperature (°C) AT",
